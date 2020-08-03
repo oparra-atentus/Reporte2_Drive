@@ -1,0 +1,791 @@
+<!-- Resources -->
+    <script type="text/javascript" src="tools/amcharts/amcharts.js"></script>
+    <script type="text/javascript" src="tools/amcharts/serial.js"></script>
+
+<link rel="stylesheet" href="{__path_jquery_ui}css/ui-lightness/jquery-ui-1.8.17.custom.css"></link>
+<script type="text/javascript" src="{__path_jquery_ui}js/jquery-ui-1.8.17.custom.min.js"></script>
+<!-- Styles -->
+<style>
+    .chartdiv {
+      width: 100%;
+      height: 600;
+    }
+    .celdanegra40 {
+        padding: 2px 2px 2px 2px;
+        background-color: #a2a2a2;
+        font-family: Verdana,Arial,Helvetica,sans-serif;
+        font-size: 12px;
+    }
+    
+    .text{
+        font-family: Trebuchet MS, Verdana, sans-serif;
+        font-size: 12px;
+    }
+
+
+
+input.accordion2 {
+    background-color: #F47001;
+    color: #fff;
+    cursor: pointer;
+    padding: 3px;
+    width: 25%;
+    text-align: center;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    -webkit-border-radius: 7;
+    -moz-border-radius: 7;
+    border-radius: 7px;
+    /*transition: 0.3s;*/
+}
+
+input.accordion2.active {
+     background-color: #f47001;
+}
+input.accordion2:hover {
+     background-color: #FFC99D;
+}
+
+div.panel2 {
+    padding: 0 18px;
+        max-height: 0;
+    overflow: hidden;
+    transition: max-height .2s ease-out;
+}
+/* FIN ACORDEON */
+
+/* SLIDER */
+.flat-slider.ui-corner-all,
+.flat-slider .ui-corner-all {
+  border-radius: 0;
+}
+
+.flat-slider.ui-slider {
+  border: 0;
+  background: #f8e5e2;
+  border-radius: 7px;
+}
+
+.flat-slider.ui-slider-horizontal {
+  height: 6px;
+}
+
+.flat-slider .ui-slider-handle {
+  width: 20px;
+  height: 20px;
+  background: #f47001;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.flat-slider.ui-slider-horizontal .ui-slider-handle {
+  top: 50%;
+  margin-top: -10px;
+}
+
+.flat-slider.ui-slider-vertical .ui-slider-handle {
+  left: 50%;
+  margin-left: -10px;
+}
+
+.flat-slider .ui-slider-handle:hover {
+  opacity: 1;
+}
+
+.flat-slider .ui-slider-range {
+  border: 0;
+  border-radius: 7;
+  background: #f38e46;
+}
+
+.flat-slider.ui-slider-horizontal .ui-slider-range {
+  top: 0;
+  height: 6px;
+}
+/* FIN SLIDER */
+
+
+.spinner {
+  margin: auto;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  text-align: center;
+  -webkit-animation: sk-rotate 2.0s infinite linear;
+  animation: sk-rotate 2.0s infinite linear;
+}
+
+.dot1, .dot2 {
+  width: 60%;
+  height: 60%;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  background-color: #f47001;
+  border-radius: 100%;
+
+  -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
+  animation: sk-bounce 2.0s infinite ease-in-out;
+}
+
+.dot2 {
+  top: auto;
+  bottom: 0;
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+@-webkit-keyframes sk-rotate { 100% { -webkit-transform: rotate(360deg) }}
+@keyframes sk-rotate { 100% { transform: rotate(360deg); -webkit-transform: rotate(360deg) }}
+
+@-webkit-keyframes sk-bounce {
+  0%, 100% { -webkit-transform: scale(0.0) }
+  50% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes sk-bounce {
+  0%, 100% {
+    transform: scale(0.0);
+    -webkit-transform: scale(0.0);
+  } 50% {
+    transform: scale(1.0);
+    -webkit-transform: scale(1.0);
+  }
+}
+</style>
+    
+<input type="button" class="accordion2" style="float: center;" value="Filtrar contenido"></input>
+<div class="panel2" style="background-color: #f6f6f6;">
+	<br />
+	<div id="time-range" style="width:90%; padding-left: 30px;">
+		<div>
+			<br>
+			<div class="flat-slider" id="flat-slider"></div>
+			<br>
+			<br>
+			<a>Hora Inicio: </a>
+			<input type="number" class="slider-time-hour1" name="hora_inicio" value="0"  min="0" max="23" style="width:35px; height:20px" />
+			<a> : </a>
+			<input type="number" class="slider-time-minute1" name="minuto_inicio" value="0" min="0" max="59" style="width:35px; height:20px"/>
+			<a>&nbsp; &nbsp;</a>
+			<a>Hora Término: </a>
+			<input type="number" class="slider-time-hour2" name="hora_termino" min="0" value="23" max="23" style="width:35px; height:20px"/>
+			<a> : </a>
+			<input type="number" class="slider-time-minute2" name="minuto_termino"  min="0" value="59" max="59" style="width:35px; height:20px"/>
+			<br>
+		</div>
+	</div>
+	<div id="formbutton" style="display:inline";>
+		<input type="button" class="boton_accion" value="Filtrar" style="cursor: pointer" onClick="filtro();"/>
+    </div>
+    <div id="button2" style="margin-left:30px; display:none;"><img src="img/cargando.gif"></div>
+    <br>
+</div>
+
+    <!-- BEGIN BLOQUE_OBJETIVOS2 -->
+    <div id='{__id}'>
+    	<div>
+	    	<div  id="chartdiv_{__id}"class="chartdiv" ></div>
+	    	<div id="table_{__id}"></div>
+	    </div>
+    </div>
+    <!-- BEGIN BLOQUE_NODOS -->
+    <div id='{__id}_{__monitor}'>
+	    <div  id="chartdiv_{__id}_{__monitor}"class="chartdiv" ></div>
+	    <div  id="table_{__id}_{__monitor}"></div>
+    </div>
+    <!-- END BLOQUE_NODOS -->
+    <!-- END BLOQUE_OBJETIVOS2 -->
+    
+<script>
+
+
+
+	if('{__filter}'!=="true"){
+		$('.accordion2').remove()
+	}
+	
+
+	var acc = document.getElementsByClassName("accordion2");
+		var i;
+		for (i = 0; i < acc.length; i++) {
+	        acc[i].onclick = function(){
+	            
+	            this.classList.toggle("active");
+	            var panel = this.nextElementSibling;
+	            if (panel.style.maxHeight){
+	             panel.style.maxHeight = null;
+	          } else {
+	             panel.style.maxHeight = panel.scrollHeight + "px";
+	          }
+	        }
+		}
+
+	//SLIDER
+	$("#flat-slider").slider({
+	        range: true,
+	        min: 0,
+	        max: 1439,
+	        step: 1,
+	        values: [0, 1440],
+	        slide: function (e, ui) {
+	                var hours1 = Math.floor(ui.values[0] / 60);
+	                var minutes1 = ui.values[0] - (hours1 * 60);
+
+	                var hours1String = hours1.toString();
+	                var minutes1String = minutes1.toString();
+
+	                if (hours1String.length == 1) {
+	                        hours1 = '0' + hours1;
+	                }
+	                if (minutes1String.length == 1) {
+	                        minutes1 = '0' + minutes1;
+	                }
+	                //SE CAMBIAN LOS VALORES DE LOS INPUT MIENTRAS SE ARRASTRA EL SLIDER
+	                $('.slider-time-hour1').val(hours1);
+	                $('.slider-time-minute1').val(minutes1);
+
+	                var hours2 = Math.floor(ui.values[1] / 60);
+	                var minutes2 = ui.values[1] - (hours2 * 60);
+
+	                var hours2String = hours2.toString();
+	                var minutes2String = minutes2.toString();
+
+	                if (hours2String.length == 1) {
+	                        hours2 = '0' + hours2;
+	                }
+	                if (minutes2String.length == 1) {
+	                        minutes2 = '0' + minutes2;
+	                }
+
+	                $('.slider-time-hour2').val(hours2);
+	                $('.slider-time-minute2').val(minutes2);
+	        }
+	});
+	//SE CAMBIAN LOS VALORES DEL SLIDER DE ACUERDO A LO INGRESADO EN LOS INPUTS
+	$(".slider-time-hour1").change(function() {
+	        $(".slider-time-hour1").attr({
+	                "max": $(".slider-time-hour2").val()
+	        });
+	        var hora1 = $(".slider-time-hour1").val();
+	        var minuto1 = parseInt($(".slider-time-minute1").val());
+	        var horaSlider1 = (hora1 * 60 + minuto1);
+	        $("#flat-slider").slider('values',0, horaSlider1);
+	});
+	$(".slider-time-minute1").change(function() {
+	        if ($(".slider-time-hour1").val() == $(".slider-time-hour2").val()) {
+	                $(".slider-time-minute1").attr({
+	                        "max": $(".slider-time-minute2").val()
+	                });
+	        }
+	        var hora1 = $(".slider-time-hour1").val();
+	        var minuto1 = parseInt($(".slider-time-minute1").val());
+	        var horaSlider1 = (hora1 * 60 + minuto1);
+	        $("#flat-slider").slider('values',0, horaSlider1);
+	});
+
+	$(".slider-time-hour2").change(function() {
+	        $(".slider-time-hour2").attr({
+	                "min": $(".slider-time-hour1").val()
+	        });
+	        var hora2 = $(".slider-time-hour2").val();
+	        var minuto2 = parseInt($(".slider-time-minute2").val());
+	        var horaSlider2 = (hora2 * 60 + minuto2);
+	        $("#flat-slider").slider('values',1, horaSlider2);
+	});
+	$(".slider-time-minute2").change(function() {
+	        $(".slider-time-minute2").attr({
+	                "min": $(".slider-time-minute1").val()
+	        });
+	        var hora2 = $(".slider-time-hour2").val();
+	        var minuto2 = parseInt($(".slider-time-minute2").val());
+	        var horaSlider2 = (hora2 * 60 + minuto2);
+	        $("#flat-slider").slider('values',1, horaSlider2);
+	});
+
+
+	var table=document.getElementById("table_especial")
+	table.width="100%"
+    user = '{__user}'
+    objs=""
+    nodos=''
+    <!-- BEGIN BLOQUE_OBJETIVOS -->
+        objs +='{__id},{__paso},{__sla_p},{__sla_e},{__global},{__parcial}|'
+    	nodos+="{__id}:{__nodos}:{__max}|"
+    <!-- END BLOQUE_OBJETIVOS -->
+    var type="normal"
+    var filter=false
+    if('{__especialType}'=='hour'){
+    	type="hour"
+    }
+    if('{__filter}'=="true"){
+    	filter=true
+    }
+    objs= objs.slice(0, -1);
+    nodos= nodos.slice(0, -1);
+    
+    //console.log('{__termino}')
+    
+	function filtro(){
+		document.getElementById('formbutton').style.display = 'none'
+		document.getElementById('button2').style.display = 'inline'
+		
+		var yearBegin=(('{__inicio}').substr(0,2))
+	    var monthBegin=(('{__inicio}').substr(5,2))
+	    var dayBegin=(('{__inicio}').substr(8,10))
+		var hour1=($('.slider-time-hour1').val())
+		var minute1=($('.slider-time-minute1').val())
+		var hour2=($('.slider-time-hour2').val())
+		var minute2=($('.slider-time-minute2').val())
+		var time=hour1+":"+minute1+","+hour2+":"+minute2
+		var final=(new Date("{__termino}"))
+	    var yearFinal=(final.getFullYear())
+	    var monthFinal=(final.getMonth()+1)
+	    var dayFinal=(final.getDate())
+	    var dateBegin=dayBegin+'/'+monthBegin+"/"+yearBegin
+		var dateFinal=dayFinal+"/"+monthFinal+"/"+yearFinal
+		
+		var timeHeaderBegin=hour1+':'+minute1+':00'
+		var timeHeaderBegin1=hour2+':'+minute2+':00'
+		var timeHeader=dateBegin+" al "+dateFinal+"   Rango : "+timeHeaderBegin+" a "+timeHeaderBegin1
+		setTimeout(function(){
+			$.ajax({
+				async: false,
+				type: "POST",
+				url: "utils/getObjetivoPaso.php",
+				data: {'user': user, 'data':objs, 'inicio':'{__inicio}', 'termino':'{__termino}', "data_nodo":nodos, "type":type, "filter":true, "time":time, "historic":false},
+				success: function(data) {
+					document.getElementById('button2').style.display = 'none'
+					document.getElementById('formbutton').style.display = 'inline'
+					newData=(JSON.parse(data))
+					$.each(newData, function(index, objetivo){
+						if(objetivo.globales){
+							dataObj=[]
+							var timeDate='Fecha'
+							if(type==='hour'){
+								timeDate='Horas'
+							}
+							tabla='<table align="center" width="40%"><tr><td style="border: solid 1px #ffffff;" class="celdanegra40">'+timeDate+'</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Perf. 15 Segs.</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Fuera de Sla</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Error</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Promedio</td></tr>'
+							$.each(objetivo.globales, function(i, globals){
+								dctData={"category":globals.dia,"uptime":globals.performance_global, "downtime":globals.error_global, "parcial":globals.parcial_global, "tiempo":globals.promedio_global}
+								dataObj.push(dctData)
+								fecha= globals.fecha
+								if (i%2==0) {
+						    		cell="celdaIteracion1"
+						    	}else{
+						    		cell ="celdaIteracion2"
+						    	}
+								tabla+='<tr><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+fecha+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.performance_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.parcial_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.error_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.promedio_global+'</td></tr>'
+
+							})
+
+							var tableEspecial='<tbody><tr><td height="40" style="padding: 4px 4px 4px 20px; background-color:#f47001;">'
+							tableEspecial+='<span class="txtBlanco15b">Performance Test Movistar Filter</span><br><span class="txtBlanco13b"></span>'
+							tableEspecial+='</td><td style="padding: 4px; background-color:#626262;" class="txtBlanco13b">'
+							tableEspecial+=timeHeader+'</td></tr><tr><td height="4" style="background-color: #f47001;"></td>'
+							tableEspecial+='<td height="4" style="background-color: #f47001;"></td></tr></tbody>'
+							$("#especial").empty()
+							$("#especial").append(tableEspecial)
+							createChartGeneral("chartdiv_",objetivo, dataObj)
+							tabla+='</table>'
+							$("#table_"+objetivo.objetive).empty()
+							$("#table_"+objetivo.objetive).append(tabla)
+							table=$("#table_"+objetivo.objetive)
+						}else{
+							$("#"+objetivo.objetive).remove();
+						}
+					})
+				}
+			})
+		}, 1)
+	}
+
+    $.ajax({
+		async: false,
+		type: "POST",
+		url: "utils/getObjetivoPaso.php",
+		data: {'user': user, 'data':objs, 'inicio':'{__inicio}', 'termino':'{__termino}', "data_nodo":nodos, "type":type, "filter":false, "time":"", "historic":"{__historic}"},
+		success: function(data) {
+			data = JSON.parse(data)
+			
+			$.each(data, function(index, objetivo){
+				
+				
+				if(objetivo.globales){
+					dataObj=[]
+					var timeDate='Fecha'
+					if(type==='hour'){
+						timeDate='Horas'
+					}
+					tabla='<table align="center" width="40%"><tr><td style="border: solid 1px #ffffff;" class="celdanegra40">'+timeDate+'</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Perf. 15 Segs.</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Fuera de Sla</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Error</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Promedio</td></tr>'
+					$.each(objetivo.globales, function(i, globals){
+						dctData={"category":globals.dia,"uptime":globals.performance_global, "downtime":globals.error_global, "parcial":globals.parcial_global, "tiempo":globals.promedio_global}
+						dataObj.push(dctData)
+						fecha= globals.fecha
+						if (i%2==0) {
+				    		cell="celdaIteracion1"
+				    	}else{
+				    		cell ="celdaIteracion2"
+				    	}
+						tabla+='<tr><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+fecha+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.performance_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.parcial_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.error_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.promedio_global+'</td></tr>'
+
+					})
+					createChartGeneral("chartdiv_",objetivo, dataObj)
+
+					tabla+'</table>'
+					var tableData=document.getElementById("table_"+objetivo.objetive)
+					$("#table_"+objetivo.objetive).append(tabla)
+					table=$("#table_"+objetivo.objetive)
+
+					
+				}else{
+					$("#"+objetivo.objetive).remove();
+				}
+			})
+			//RECORRE OBJETIVOS
+			$.each(data, function(index, objetivo){
+				//console.log(objetivo)
+				//RECORRE NODOS
+				if(typeof objetivo["data"]!=="undefined"){
+					$.each(objetivo["data"], function(index, data_nodo){
+						monitor_id=(data_nodo["monitor_id"])
+						nombre_nodo=data_nodo["data_nodo"]["nombre"]
+						performance=(data_nodo["performance"])
+						createChart(objetivo["objetive"], performance, objetivo["nombre_objetivo"], objetivo["paso"]["nombre_paso"], monitor_id, nombre_nodo)
+					})
+				}else{
+					//console.log(nodos.split("|"))
+					$.each(nodos.split("|"), function(index, dataNodo){
+						if(dataNodo.split(":")[0]==objetivo.objetive){
+							$.each(dataNodo.split(":")[1].split(","), function(index, nodo){
+								$("#"+objetivo.objetive+"_"+nodo).remove();
+							})
+						}
+					})
+					
+				}
+			})
+		}
+	})
+	function createChartGeneral(chart,objetivo, dataObj){
+		var title='Performance Global'
+		
+		var a = AmCharts.makeChart(chart+objetivo.objetive, {
+
+				    "type": "serial",
+					"theme": "light",
+					"columnWidth": 0.8,
+					"titles": [{
+					    "text": objetivo.nombre_objetivo
+					  }, {
+					    "text": title,
+					    "bold": false
+					  }],
+					"valueAxes": [{
+						"stackType": "100%",
+					 	"id": "v1",
+					 	"gridColor": "#FFFFFF",
+	    				"gridAlpha": 0.1,
+	    				"dashLength": 0,
+
+					 	"title": "Performance Rendimiento (%)",
+					 	"position": "left",
+					       "labelFunction": function(value) {
+					      		return Math.round(value) + "%";
+					   		}
+					    }, {
+							"id": "v2",
+							"title": "Tiempo de Respuesta (Segs)",
+							"position": "right",
+							"minimum": 0,
+	    					"maximum": 50,
+
+						}],
+					    
+						// esto hace linea paralela
+						"chartCursor": {
+						    "pan": true,
+							"valueLineEnabled": true,
+							"valueLineBalloonEnabled": true,
+							"cursorAlpha": 0,
+							"valueLineAlpha": 0.2
+						},
+						
+					    "legend": {
+					        "position": "bottom",
+							"useGraphSettings": true,
+					    },
+					    "categoryField": "category",
+					    "categoryAxis": {
+					        "gridAlpha": 0,
+					        "position": "left",
+					    },
+					    //PRIMERA BARRA
+					    "graphs": [{
+					    	"valueAxis": "v1",
+					        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+					        "fillAlphas": 0.95,
+					        "fillColors":"#54a51c",
+					        "labelText": "[[value]]",
+					        "lineAlpha": 0.2,
+					       	"precision" : 1,
+					        "lineAlpha": 0.2,
+					        "fontSize":14,
+					        "title": "Perf. 15 Segundos",
+					        "type": "column",
+							"color": "#000000",
+					        "valueField": "uptime",
+					        "showAllValueLabels": true,
+							"labelPosition":"middle"
+					    }, {
+					    	//SEGUNDA BARRA
+					    	"valueAxis": "v1",
+					        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+					        "fillAlphas": 0.95,
+					        "fillColors":"#fc8e3d",
+					        "labelText": "[[value]]",
+					        "precision" : 1,
+					        "lineAlpha": 0.2,
+					        "fontSize":14,
+					        "title": "Indisp./Error",
+					        "type": "column",
+							"color": "#000000",
+					        "valueField": "downtime",
+					        "showAllValueLabels": true,
+					        "labelPosition":"middle"
+					    },{
+					    	//TERCERA BARRA
+					    	"valueAxis": "v1",
+					        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+					        "fillAlphas": 0.95,
+					        "labelText": "[[value]]",
+					        "fillColors":"#989890",
+					        "precision" : 1,
+					        "lineAlpha": 0.2,
+					        "fontSize":14,
+					        "title": "Fuera de Sla",
+					        "type": "column",
+							"color": "#000000",
+					        "valueField": "parcial",
+					        "showAllValueLabels": true,
+					        "labelPosition":"top"
+					    },{
+					    	//LINEA
+					        "bullet": "round",
+					        "valueAxis": "v2",
+					        "dashLength": 5,
+							"bulletBorderAlpha": 1,
+							"bulletColor": "#FFFFFF",
+							"bulletSize": 5,
+							"bulletAlpha":0,
+							"hideBulletsCount": 50,
+							"lineThickness": 2,
+							"lineColor": "red",
+							"type": "smoothedLine",
+							"labelText": "[[value]]",
+							"showAllValueLabels": true,
+							"title": "Tiempo de Respuesta Promedio",
+							"useLineColorForBulletBorder": true,
+							"valueField": "tiempo",
+							"balloonText": "<b>[[title]]</b><span style='font-size:14px'>:[[value]]</span>",
+							"noStepRisers":true,
+							"labelPosition":"bottom"
+					    }],
+					    "dataProvider":dataObj,
+					    //esto hace filtro
+						//"chartScrollbar": barGenerate() ,
+					});
+	}
+   function barGenerate(){
+			if('{__pdf}'=='true'){
+				return {}
+			}else{
+				newarr=[]
+				newarr.push({
+					"graph": "g1",
+					"oppositeAxis": false,
+					"offset": 30,
+					"scrollbarHeight": 50,
+					"backgroundAlpha": 0,
+					"selectedBackgroundAlpha": 0.1,
+					"selectedBackgroundColor": "#888888",
+					"graphFillAlpha": 0,
+					"graphLineAlpha": 0.5,
+					"selectedGraphFillAlpha": 0,
+					"selectedGraphLineAlpha": 1,
+					"autoGridCount": true,
+					"color": "#AAAAAA"
+				})
+				return newarr[0]
+			}
+		}
+	function createChart(objetivo, performance, nombre_objetivo, nombre_paso, monitor_id, nombre_nodo){
+		
+		if(performance.length==0){
+			document.getElementById("chartdiv_"+objetivo+"_"+monitor_id).style.display="none"
+			$("#table_"+objetivo+"_"+monitor_id).append('<table Align="center" width="100%"><tr><td align="center" style="border: solid 1px #ffffff;" class="celdanegra50">'+nombre_objetivo+"-"+nombre_nodo+'</td></tr></table><table align="center" id="sin_datos"><tr><td width="20"><i class="spriteImg spriteImg-advertencia"></i></td><td align="center" class="textgris12">No se encontraron datos para este monitoreo.</td></tr></table>')
+		}else{
+			var timeDate='Fecha'
+			if(type==='hour'){
+				timeDate='Horas'
+			}
+			data= new Array()
+			tabla='<table align="center" width="40%"><tr><td style="border: solid 1px #ffffff;" class="celdanegra40">'+timeDate+'</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Perf. 15 Segs.</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Fuera de Sla</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Error</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Promedio</td></tr>'
+			$.each(performance, function(index, performanceData){
+				var fecha=performanceData["fecha"]
+				var category=performanceData["fecha"]
+				if(type!=='hour'){
+					category=performanceData["dia_semana"]
+					fecha= (fecha.split("T"))[0]
+				}
+				if (index%2==0) {
+		    		cell="celdaIteracion1"
+		    	}else{
+		    		cell ="celdaIteracion2"
+		    	}
+				tabla+='<tr><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+fecha+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+performanceData["performance"]+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+performanceData["parcial"]+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+performanceData["error"]+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+performanceData["media"]+'</td></tr>'
+
+				dctData={"category":category,"uptime":performanceData["performance"], "downtime":performanceData["error"], "parcial":performanceData["parcial"], "tiempo":performanceData["media"]}
+				data.push(dctData)
+			})
+			tabla+'</table>'
+			var tableData=document.getElementById("table_"+objetivo+"_"+monitor_id)
+			$("#table_"+objetivo+"_"+monitor_id).append(tabla)
+			table=$("#table_"+objetivo+"_"+monitor_id)
+			titulo=nombre_objetivo+"-"+nombre_nodo
+
+			var chart = AmCharts.makeChart("chartdiv_"+objetivo+'_'+monitor_id, {
+		    "type": "serial",
+			"theme": "light",
+			"columnWidth": 0.8,
+			
+			"titles": [{
+			    "text": titulo
+			  }, {
+			    "text": nombre_paso,
+			    "bold": false
+			  }],
+			"valueAxes": [{
+				"stackType": "100%",
+			 	"id": "v1",
+			 	"gridColor": "#FFFFFF",
+				"gridAlpha": 0.1,
+				"dashLength": 0,
+
+			 	"title": "Performance Rendimiento (%)",
+			 	"position": "left",
+			       "labelFunction": function(value) {
+			      		return Math.round(value) + "%";
+			   		}
+			    }, {
+					"id": "v2",
+					"title": "Tiempo de Respuesta (Segs)",
+					"position": "right",
+					"minimum": 0,
+					"maximum": 50,
+
+				}],
+			    
+				// esto hace linea paralela
+				"chartCursor": {
+				    "pan": true,
+					"valueLineEnabled": true,
+					"valueLineBalloonEnabled": true,
+					"cursorAlpha": 0,
+					"valueLineAlpha": 0.2
+				},
+				
+			    "legend": {
+			        "position": "bottom",
+					"useGraphSettings": true,
+			    },
+			    "categoryField": "category",
+			    "categoryAxis": {
+			        "gridAlpha": 0,
+			        "position": "left",
+			    },
+			    //PRIMERA BARRA
+			    "graphs": [{
+			    	"valueAxis": "v1",
+			        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+			        "fillAlphas": 0.95,
+			        "fillColors":"#54a51c",
+			        "labelText": "[[value]]",
+			        "lineAlpha": 0.2,
+			        "fontSize":14,
+			        "precision" : 1,
+			        "title": "Perf. 15 Segundos",
+			        "type": "column",
+					"color": "#000000",
+			        "valueField": "uptime",
+			        "showAllValueLabels": true,
+			        "labelPosition":"middle"
+			    }, {
+			    	//SEGUNDA BARRA
+			    	"valueAxis": "v1",
+			        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+			        "fillAlphas": 0.95,
+			        "fillColors":"#fc8e3d",
+			        "labelText": "[[value]]",
+			        "precision" : 1,
+			        "lineAlpha": 0.2,
+			        "fontSize":14,
+			        "title": "Indisp./Error",
+			        "type": "column",
+					"color": "#000000",
+			        "valueField": "downtime",
+			        "showAllValueLabels": true,
+			        "labelPosition":"middle"
+			    },{
+			    	//TERCERA BARRA
+			    	"valueAxis": "v1",
+			        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+			        "fillAlphas": 0.95,
+			        "labelText": "[[value]]",
+			        "fillColors":"#989890",
+			        "lineAlpha": 0.1,
+			        "precision" : 1,
+			        "fontSize":14,
+			        "title": "Fuera de Sla",
+			        "type": "column",
+					"color": "#000000",
+			        "valueField": "parcial",
+			        "showAllValueLabels": true,
+			        "labelPosition":"top"
+			    },{
+			    	//LINEA
+			        "bullet": "round",
+			        "valueAxis": "v2",
+			        "dashLength": 5,
+					"bulletBorderAlpha": 1,
+					"bulletColor": "#FFFFFF",
+					"bulletSize": 5,
+					"bulletAlpha":0,
+					"hideBulletsCount": 50,
+					"lineThickness": 2,
+					"lineColor": "red",
+					"type": "smoothedLine",
+					"title": "Tiempo de Respuesta Promedio",
+					"useLineColorForBulletBorder": true,
+					"valueField": "tiempo",
+					"labelText": "[[value]]",
+					"balloonText": "<b>[[title]]</b><span style='font-size:14px'>:[[value]]</span>",
+					"noStepRisers":true,
+					"showAllValueLabels": true,
+					"labelPosition":"bottom"
+			    }],
+			    "dataProvider":data,
+			    //esto hace filtro
+				"chartScrollbar": barGenerate() ,
+			});
+		}
+
+		
+	}
+
+		
+
+    
+</script>

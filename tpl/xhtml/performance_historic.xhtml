@@ -1,0 +1,352 @@
+<!-- Resources -->
+    <script type="text/javascript" src="tools/amcharts/amcharts.js"></script>
+    <script type="text/javascript" src="tools/amcharts/serial.js"></script>
+
+<link rel="stylesheet" href="{__path_jquery_ui}css/ui-lightness/jquery-ui-1.8.17.custom.css"></link>
+<script type="text/javascript" src="{__path_jquery_ui}js/jquery-ui-1.8.17.custom.min.js"></script>
+<!-- Styles -->
+<style>
+    .chartdiv {
+      width: 100%;
+      height: 600;
+    }
+    .celdanegra40 {
+        padding: 2px 2px 2px 2px;
+        background-color: #a2a2a2;
+        font-family: Verdana,Arial,Helvetica,sans-serif;
+        font-size: 12px;
+    }
+    
+    * {box-sizing: border-box;}
+	.wrapper {
+	  max-width: 100%;
+	  margin: 0 auto;
+	}
+
+	.wrapper > div {
+	  border: 2px ;
+	  border-radius: 5px;
+	  padding: 1em;
+	}.wrapper {
+	  display: grid;
+	  grid-template-columns: repeat(3, 1fr);
+	  grid-gap: 10px;
+	}
+	.one {
+		height: 600px;
+	  grid-column: 1 / 3;
+	  grid-row: 1;
+	}
+	.two { 
+		height: 600px;
+	  grid-column: 3 / 35;
+	  grid-row: 1;
+	}
+	.three {
+  grid-column: 1/3;
+  grid-row: 2;
+}
+.four {
+  grid-column: 3/35;
+  grid-row: 2;
+}
+</style>
+    
+
+    <!-- BEGIN BLOQUE_OBJETIVOS2 -->
+    <div id='{__id}' class="wrapper">
+	  <div id="chartHistoric__{__id}" class="one"></div>
+	  <div id="chartdiv_{__id}" class="two"></div>
+	  <div id="tableHistoric_{__id}" class="three"></div>
+	  <div id="table_{__id}" class="four"></div>
+
+	</div>
+    <!-- BEGIN BLOQUE_NODOS -->
+    <!-- END BLOQUE_NODOS -->
+    <!-- END BLOQUE_OBJETIVOS2 -->
+    
+<script>
+
+
+
+	var table=document.getElementById("table_especial")
+	table.width="100%"
+    user = '{__user}'
+    objs=""
+    nodos=''
+    <!-- BEGIN BLOQUE_OBJETIVOS -->
+        objs +='{__id},{__paso},{__sla_p},{__sla_e},{__global},{__parcial}|'
+    	nodos+="{__id}:{__nodos}:{__max}|"
+    <!-- END BLOQUE_OBJETIVOS -->
+    var type="normal"
+    var filter=false
+    if('{__especialType}'=='hour'){
+    	type="hour"
+    }
+    if('{__filter}'=="true"){
+    	filter=true
+    }
+    objs= objs.slice(0, -1);
+    nodos= nodos.slice(0, -1);
+   
+    $.ajax({
+		async: false,
+		type: "POST",
+		url: "utils/getObjetivoPaso.php",
+		data: {'user': user, 'data':objs, 'inicio':'{__inicio}', 'termino':'{__termino}', "data_nodo":nodos, "type":type, "filter":false, "time":"", "historic":"{__historic}"},
+		success: function(data) {
+			data = JSON.parse(data)
+			//console.log(data)
+			//RECORRE OBJETIVOS
+			/*if('{__historic}'=="true"){
+				
+				var objs=""
+				$.each(data, function(index, obj){
+					if(index!=data.length-1){
+						objs+=obj.nombre_objetivo+"," 
+					}else{
+						objs+=obj.nombre_objetivo
+					}
+				})
+				tableEspecial='<tbody><tr><td style="height: 45px;font-family: Arial, Helvetica, sans-serif;font-size:24px">Performance Historico Movistar {__inicio} al {__termino} de '+objs+ '</td>'
+				tableEspecial+='<td style="width:10%" rowspan="2"><img src="img/Selection_264.png"></td></tr>'
+				tableEspecial+='<tr><td style="border-top:3px solid #03a9f4"></td></tr></tbody>'
+				$("#especial").empty()
+				$("#especial").append(tableEspecial)
+				console.log()
+			}*/
+			$.each(data, function(index, objetivo){
+				if('{__historic}'=="true"){
+					
+					dataObj=[]
+					tablaH='<table align="center" width="80%"><tr><td style="border: solid 1px #ffffff;" class="celdanegra40">Fecha</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Perf. 15 Segs.</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Fuera de Sla</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Error</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Promedio</td></tr>'
+					$.each(objetivo.historico, function(i, historic){
+						dataHistorica=(historic[Object.keys(historic)[0]][0])
+						dctData={"category":Object.keys(historic)[0],"uptime":dataHistorica.perf_ok, "downtime":dataHistorica.perf_error, "parcial":dataHistorica.perf_parcial, "tiempo":dataHistorica.promedio}
+						dataObj.push(dctData)
+
+						if (i%2==0) {
+				    		cell="celdaIteracion1"
+				    	}else{
+				    		cell ="celdaIteracion2"
+				    	}
+						tablaH+='<tr><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+Object.keys(historic)[0]+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+dataHistorica.perf_ok+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+dataHistorica.perf_parcial+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+dataHistorica.perf_error+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+dataHistorica.promedio+'</td></tr>'
+					})
+					tablaH+='</table>'
+					$("#tableHistoric_"+objetivo.objetive).append(tablaH)
+					createChartGeneral("chartHistoric__",objetivo, dataObj)
+				}
+				
+				if(objetivo.globales){
+					dataObj=[]
+					var timeDate='Fecha'
+					if(type==='hour'){
+						timeDate='Horas'
+					}
+					tabla='<table align="center" width="80%"><tr><td style="border: solid 1px #ffffff;" class="celdanegra40">'+timeDate+'</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Perf. 15 Segs.</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Fuera de Sla</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Error</td><td style="border: solid 1px #ffffff;" class="celdanegra40">Promedio</td></tr>'
+					$.each(objetivo.globales, function(i, globals){
+						dctData={"category":globals.dia,"uptime":globals.performance_global, "downtime":globals.error_global, "parcial":globals.parcial_global, "tiempo":globals.promedio_global}
+						dataObj.push(dctData)
+						fecha= globals.fecha
+						if (i%2==0) {
+				    		cell="celdaIteracion1"
+				    	}else{
+				    		cell ="celdaIteracion2"
+				    	}
+						tabla+='<tr><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+fecha+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.performance_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.parcial_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.error_global+'</td><td style="font-family: Trebuchet MS, Verdana, sans-serif;font-size: 12px;" class='+cell+'>'+globals.promedio_global+'</td></tr>'
+
+					})
+					createChartGeneral("chartdiv_",objetivo, dataObj)
+
+					tabla+'</table>'
+					var tableData=document.getElementById("table_"+objetivo.objetive)
+					$("#table_"+objetivo.objetive).append(tabla)
+					table=$("#table_"+objetivo.objetive)
+				}else{
+					$("#"+objetivo.objetive).remove();
+				}
+			})
+			//RECORRE OBJETIVOS
+			$.each(data, function(index, objetivo){
+				//console.log(objetivo)
+				//RECORRE NODOS
+				if(typeof objetivo["data"]!=="undefined"){
+					$.each(objetivo["data"], function(index, data_nodo){
+						monitor_id=(data_nodo["monitor_id"])
+						nombre_nodo=data_nodo["data_nodo"]["nombre"]
+						performance=(data_nodo["performance"])
+						createChart(objetivo["objetive"], performance, objetivo["nombre_objetivo"], objetivo["paso"]["nombre_paso"], monitor_id, nombre_nodo)
+					})
+				}else{
+					//console.log(nodos.split("|"))
+					$.each(nodos.split("|"), function(index, dataNodo){
+						if(dataNodo.split(":")[0]==objetivo.objetive){
+							$.each(dataNodo.split(":")[1].split(","), function(index, nodo){
+								$("#"+objetivo.objetive+"_"+nodo).remove();
+							})
+						}
+					})
+					
+				}
+			})
+		}
+	})
+	function createChartGeneral(chart,objetivo, dataObj){
+		var title='Performance Global'
+		if(chart=="chartHistoric__"){
+
+			title='Performance Historico'
+		}
+		var a = AmCharts.makeChart(chart+objetivo.objetive, {
+
+				    "type": "serial",
+					"theme": "light",
+					"columnWidth": 0.8,
+					"titles": [{
+					    "text": objetivo.nombre_objetivo
+					  }, {
+					    "text": title,
+					    "bold": false
+					  }],
+					"valueAxes": [{
+						"stackType": "100%",
+					 	"id": "v1",
+					 	"gridColor": "#FFFFFF",
+	    				"gridAlpha": 0.1,
+	    				"dashLength": 0,
+
+					 	"title": "Performance Rendimiento (%)",
+					 	"position": "left",
+					       "labelFunction": function(value) {
+					      		return Math.round(value) + "%";
+					   		}
+					    }, {
+							"id": "v2",
+							"title": "Tiempo de Respuesta (Segs)",
+							"position": "right",
+							"minimum": 0,
+	    					"maximum": 50,
+
+						}],
+					    
+						// esto hace linea paralela
+						"chartCursor": {
+						    "pan": true,
+							"valueLineEnabled": true,
+							"valueLineBalloonEnabled": true,
+							"cursorAlpha": 0,
+							"valueLineAlpha": 0.2
+						},
+						
+					    "legend": {
+					        "position": "bottom",
+							"useGraphSettings": true,
+					    },
+					    "categoryField": "category",
+					    "categoryAxis": {
+					        "gridAlpha": 0,
+					        "position": "left",
+					    },
+					    //PRIMERA BARRA
+					    "graphs": [{
+					    	"valueAxis": "v1",
+					        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+					        "fillAlphas": 0.95,
+					        "fillColors":"#54a51c",
+					        "labelText": "[[value]]",
+					        "lineAlpha": 0.2,
+					       	"precision" : 1,
+					        "lineAlpha": 0.2,
+					        "fontSize":14,
+					        "title": "Perf. 15 Segundos",
+					        "type": "column",
+							"color": "#000000",
+					        "valueField": "uptime",
+					        "showAllValueLabels": true,
+							"labelPosition":"middle"
+					    }, {
+					    	//SEGUNDA BARRA
+					    	"valueAxis": "v1",
+					        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+					        "fillAlphas": 0.95,
+					        "fillColors":"#fc8e3d",
+					        "labelText": "[[value]]",
+					        "precision" : 1,
+					        "lineAlpha": 0.2,
+					        "fontSize":14,
+					        "title": "Indisp./Error",
+					        "type": "column",
+							"color": "#000000",
+					        "valueField": "downtime",
+					        "showAllValueLabels": true,
+					        "labelPosition":"middle"
+					    },{
+					    	//TERCERA BARRA
+					    	"valueAxis": "v1",
+					        "balloonText": "<b>[[title]]</b><br><span style='font-size:12px'>[[category]]: <b>[[value]]</b></span>",
+					        "fillAlphas": 0.95,
+					        "labelText": "[[value]]",
+					        "fillColors":"#989890",
+					        "precision" : 1,
+					        "lineAlpha": 0.2,
+					        "fontSize":14,
+					        "title": "Fuera de Sla",
+					        "type": "column",
+							"color": "#000000",
+					        "valueField": "parcial",
+					        "showAllValueLabels": true,
+					        "labelPosition":"top"
+					    },{
+					    	//LINEA
+					        "bullet": "round",
+					        "valueAxis": "v2",
+					        "dashLength": 5,
+							"bulletBorderAlpha": 1,
+							"bulletColor": "#FFFFFF",
+							"bulletSize": 5,
+							"bulletAlpha":0,
+							"hideBulletsCount": 50,
+							"lineThickness": 2,
+							"lineColor": "red",
+							"type": "smoothedLine",
+							"labelText": "[[value]]",
+							"showAllValueLabels": true,
+							"title": "Tiempo de Respuesta Promedio",
+							"useLineColorForBulletBorder": true,
+							"valueField": "tiempo",
+							"balloonText": "<b>[[title]]</b><span style='font-size:14px'>:[[value]]</span>",
+							"noStepRisers":true,
+							"labelPosition":"bottom"
+					    }],
+					    "dataProvider":dataObj,
+					    //esto hace filtro
+						//"chartScrollbar": barGenerate() ,
+					});
+	}
+   function barGenerate(){
+			if('{__pdf}'=='true'){
+				return {}
+			}else{
+				newarr=[]
+				newarr.push({
+					"graph": "g1",
+					"oppositeAxis": false,
+					"offset": 30,
+					"scrollbarHeight": 50,
+					"backgroundAlpha": 0,
+					"selectedBackgroundAlpha": 0.1,
+					"selectedBackgroundColor": "#888888",
+					"graphFillAlpha": 0,
+					"graphLineAlpha": 0.5,
+					"selectedGraphFillAlpha": 0,
+					"selectedGraphLineAlpha": 1,
+					"autoGridCount": true,
+					"color": "#AAAAAA"
+				})
+				return newarr[0]
+			}
+		}
+		
+
+    
+</script>
