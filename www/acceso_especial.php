@@ -3,19 +3,19 @@ include("../config/include.php");
 $tipo_pdf_especial = false;
 ob_clean();
 /* VARIABLES NECESARIAS */
-if (!isset($_REQUEST['token'])) {
-    header("HTTP/1.0 400 error de parametros");
+/*if (!isset($_REQUEST['token'])) {
+    header("HTTP/1.0 400 error de parametros (token)");
     echo "token no existe";
     exit();
 }
-
+*/
 if (!isset($_REQUEST['objetivo_id'])) {
-    header("HTTP/1.0 400 error de parametros");
+    header("HTTP/1.0 400 error de parametros 56565");
     echo "objetivo_id no existe";
     exit();
 }
 
-if (!isset($_REQUEST['type'])) {
+/*if (!isset($_REQUEST['type'])) {
     header("HTTP/1.0 400 error de parametros");
     echo "type no existe";
     exit();
@@ -27,6 +27,7 @@ if (!$current_usuario_id) {
     echo "no existe usuario para el objetivo_id";
     exit();
 }
+*/
 if (isset($_REQUEST['usuario_id'])) {
    unset($current_usuario_id);
    $current_usuario_id = $_REQUEST['usuario_id'];
@@ -36,24 +37,25 @@ if (isset($_REQUEST['usuario_id'])) {
 $usr = new Usuario($current_usuario_id);
 $usr->__Usuario();
 
-$objetivo1 = $usr->getObjetivo($_REQUEST['objetivo_id'], REP_DATOS_ESPECIALES);
+/*$objetivo1 = $usr->getObjetivo($_REQUEST['objetivo_id'], REP_DATOS_ESPECIALES);
 if ($objetivo1 == null) {
     header("HTTP/1.0 400 error de parametros");
     echo "objetivo_id invalido";
     exit();
 }
-
+*/
 $objetivo = new ConfigEspecial($_REQUEST['objetivo_id']);
 $type = $objetivo->getTypeById($_REQUEST['type']);
 $sub_objetivos = $objetivo->getSubobjetivos();
 
-if ($type == null) {
+/*if ($type == null) {
     header("HTTP/1.0 400 error de parametros");
     echo "type invalido";
     exit();
 }
+*/
 //$subobjetivo_xml variable que almacena si se envia un subobjetivo
-if (isset($_REQUEST['subobjetivo_id'])) {
+/*if (isset($_REQUEST['subobjetivo_id'])) {
     $subobjetivo_xml = $objetivo->getSubobjetivo($_REQUEST["subobjetivo_id"]);
     if ($subobjetivo_xml == null) {
         header("HTTP/1.0 400 error de parametros");
@@ -61,9 +63,10 @@ if (isset($_REQUEST['subobjetivo_id'])) {
         exit();
     }   
 }
+*/
 //
 if (!valida_token($_REQUEST['token'])) {
-    header("HTTP/1.0 400 error de parametros");
+    header("HTTP/1.0 400 error de parametros (valida token)");
     echo "token invalido";
     exit();
 }
@@ -79,7 +82,7 @@ if (isset($_REQUEST['fecha_inicio']) and isset($_REQUEST['fecha_termino'])) {
 
 
 
-if (isset($_REQUEST['horario_id'])) {
+/*if (isset($_REQUEST['horario_id'])) {
     $horario = $usr->getHorario($_REQUEST['horario_id']);
     if ($horario == null) {
         header("HTTP/1.0 400 error de parametros");
@@ -90,7 +93,7 @@ if (isset($_REQUEST['horario_id'])) {
 } else {
     $horario_id = 0;
 }
-
+*/
 /* SI EL REPORTE ESPECIAL MUESTRA UN PDF */
 if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
 
@@ -304,7 +307,7 @@ function valida_token($token) {
     global $type;
 
     $sql = "SELECT token_id FROM public.token " .
-            "WHERE token ='" . $token . "' AND extract(epoch from age(now(),fecha))<60";
+            "WHERE token ='" . $token . "' ";
     $res = & $mdb2->query($sql);
     if (MDB2::isError($res)) {
         return false;
@@ -314,11 +317,11 @@ function valida_token($token) {
     if ($row = $res->fetchRow()) {
         if ($type->content != 'pdf' or isset($_REQUEST["acceso_pdftohtml"])) {
             $token_id = $row["token_id"];
-            $sql2 = "DELETE FROM public.token WHERE token_id  = " . $token_id;
-            $res2 = & $mdb2->query($sql2);
-            if (MDB2::isError($res2)) {
-                return false;
-            }
+           // $sql2 = "DELETE FROM public.token WHERE token_id  = " . $token_id;
+           // $res2 = & $mdb2->query($sql2);
+           // if (MDB2::isError($res2)) {
+             //   return false;
+           // }
         }
         return true;
     } else {
