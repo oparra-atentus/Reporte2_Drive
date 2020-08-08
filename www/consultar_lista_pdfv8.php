@@ -4,6 +4,7 @@
   </head>
   <body>
   <?php
+  include("../config/include.php");
     function enviar_url(){
       $conexion=pg_connect("host=172.16.5.124 port=5432 dbname=central2010 user=reporte_web password=.112233.")or die("Problemas con la conexión");
       $registros = pg_query($conexion, "SELECT 
@@ -52,6 +53,46 @@
                 $pre_inicio = date ( 'Y\-m\-j H:i' , $pre_inicio );
                 $fecha_inicio=substr($pre_inicio,0,10)."%2000:".substr($pre_inicio, 11);
           } 
+
+    /*if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
+
+    $html = REP_DOMINIO . "acceso_especial.php?acceso_pdftohtml=1&es_pdf=true&usuario_id=".$reg['usuario_id']."";
+    foreach ($_REQUEST as $nombre => $valor) {
+        $html.="&" . $nombre . "=" . urlencode($valor);
+    }
+    $pdf = "tmp/file_" .$reg['usuario_id'].md5(time()) . ".pdf";
+    /* NOMBRE PDF : OBJETIVO */
+    /*$dwn_objetivo = $objetivo->nombre . "_";
+    $dwn_periodo = $timestamp->toString();*/
+
+    /* NOMBRE PDF : REPORTE */
+    /*(*$sactual = Seccion::getSeccionPorDefecto(34);
+    $secciones = $sactual->getSeccionesNivel(1);
+    $dwn_reporte = "";
+    foreach ($secciones as $seccion) {
+        if ($seccion->es_parent) {
+            $dwn_reporte = $seccion->nombre . "_";
+        }
+    }*/
+
+    /* NOMBRE COMPLETO PDF */
+  /*  $dwn_completo = $dwn_reporte . $dwn_objetivo . $dwn_periodo . ".pdf";
+    $dwn_completo = str_replace(array(" - ", " ", "/", ","), array("_", "-", "-", "-"), $dwn_completo);
+    
+    exec(REP_PATH_HTMLTOPDF . " --dpi 180 -T 30mm -B 18mm -L 2mm -R 2mm " .
+            "--header-spacing 10 --header-html " . REP_PATH_TEMPLATES . "header_pdf.html --javascript-delay 2500 " .
+            "--footer-html " . REP_PATH_TEMPLATES . "footer_pdf.html " .
+            escapeshellcmd($html) . " '" . escapeshellcmd($pdf) . "'", $result);
+    ob_clean();
+
+    header("Cache-Control:  maxage=1");
+    header("Pragma: public");
+    header("Content-type: application/pdf");
+    header("Content-Disposition: attachment; filename=" . $dwn_completo);
+    $file = fopen($pdf, "r");
+    fpassthru($file);
+    unlink($pdf);
+}*/
           echo '<tr>';
           echo '<td>';
           echo '<a class="enlace"  href="http://localhost/acceso_especial.php?objetivo_id='.$reg['objetivo_id'].'&type='.$reg['tipo'].'&popup='.$reg['popup'].'&es_especial='.$reg['es_especial'].'&tiene_svg='.$reg['es_especial'].'&usuario_id='.$reg['usuario_id'].'&fecha_inicio='.$fecha_inicio.'&fecha_termino='.$fecha_termino.'&token='.$token.'" target="_blank">';

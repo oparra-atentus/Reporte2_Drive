@@ -96,17 +96,13 @@ if (isset($_REQUEST['fecha_inicio']) and isset($_REQUEST['fecha_termino'])) {
 */
 /* SI EL REPORTE ESPECIAL MUESTRA UN PDF */
 if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
-
+    // $carpeta=mkdir("tmp_".$_REQUEST['usuario_id'],0777);
+     //echo $_REQUEST['usuario_id'];
     $html = REP_DOMINIO . "acceso_especial.php?acceso_pdftohtml=1&es_pdf=true";
     foreach ($_REQUEST as $nombre => $valor) {
         $html.="&" . $nombre . "=" . urlencode($valor);
     }
-    $pdf = "tmp/file_" . md5(time()) . ".pdf";
-    /* NOMBRE PDF : OBJETIVO */
-    $dwn_objetivo = $objetivo->nombre . "_";
-    $dwn_periodo = $timestamp->toString();
 
-    /* NOMBRE PDF : REPORTE */
     $sactual = Seccion::getSeccionPorDefecto(34);
     $secciones = $sactual->getSeccionesNivel(1);
     $dwn_reporte = "";
@@ -115,15 +111,26 @@ if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
             $dwn_reporte = $seccion->nombre . "_";
         }
     }
-
-    /* NOMBRE COMPLETO PDF */
+    $dwn_objetivo = $objetivo->nombre . "_";
+ 
+   $dwn_periodo = $timestamp->toString();
     $dwn_completo = $dwn_reporte . $dwn_objetivo . $dwn_periodo . ".pdf";
     $dwn_completo = str_replace(array(" - ", " ", "/", ","), array("_", "-", "-", "-"), $dwn_completo);
     
+    $pdf = "tmp_".$_REQUEST['usuario_id']."/".$dwn_completo;
+    echo is_array($dwn_completo);
+
+    /* NOMBRE PDF : OBJETIVO */
+  
+    
+    /* NOMBRE PDF : REPORTE */
+    
+    /* NOMBRE COMPLETO PDF */
+   
     exec(REP_PATH_HTMLTOPDF . " --dpi 180 -T 30mm -B 18mm -L 2mm -R 2mm " .
             "--header-spacing 10 --header-html " . REP_PATH_TEMPLATES . "header_pdf.html --javascript-delay 2500 " .
             "--footer-html " . REP_PATH_TEMPLATES . "footer_pdf.html " .
-            escapeshellcmd($html) . " '" . escapeshellcmd($pdf) . "'", $result);
+            escapeshellcmd($html) . " '" . $pdf . "'", $result);
     ob_clean();
 
     header("Cache-Control:  maxage=1");
@@ -132,7 +139,8 @@ if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
     header("Content-Disposition: attachment; filename=" . $dwn_completo);
     $file = fopen($pdf, "r");
     fpassthru($file);
-    unlink($pdf);
+    //unlink($pdf);
+        echo "adadadasd".$pdf;
 }
 
 /* SI EL REPORTE ESPECIAL MUESTRA UN INFORME Y ES ENVIADO POR MAIL*/ 
