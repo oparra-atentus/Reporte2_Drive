@@ -59,6 +59,7 @@ include(REP_PATH_CLASS_DATA."DatosPonderacion.php");
 
 include(REP_PATH_CLASS_CONFIG."NotificacionModal.php");
 include(REP_PATH_CLASS_CONFIG."Usuario.php");
+include(REP_PATH_CLASS_CONFIG."Destinatario_email.php");
 include(REP_PATH_CLASS_CONFIG."Seccion.php");
 //include(REP_PATH_CLASS_CONFIG."Grupo.php");
 include(REP_PATH_CLASS_CONFIG."SubCliente.php");

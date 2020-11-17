@@ -53,7 +53,7 @@ class Usuario {
 	function Usuario($usuario_id) {
 		$this->usuario_id = $usuario_id;
 	}
-
+      
 	/*************** FUNCIONES PROPIAS DEL USUARIO ***************/
 	/*************** FUNCIONES PROPIAS DEL USUARIO ***************/
 	/*************** FUNCIONES PROPIAS DEL USUARIO ***************/

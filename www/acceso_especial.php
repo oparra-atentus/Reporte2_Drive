@@ -3,19 +3,18 @@ include("../config/include.php");
 $tipo_pdf_especial = false;
 ob_clean();
 /* VARIABLES NECESARIAS */
-/*if (!isset($_REQUEST['token'])) {
-    header("HTTP/1.0 400 error de parametros (token)");
+if (!isset($_REQUEST['token'])) {
+    header("HTTP/1.0 400 error de parametros");
     echo "token no existe";
     exit();
 }
-*/
 if (!isset($_REQUEST['objetivo_id'])) {
-    header("HTTP/1.0 400 error de parametros 56565");
+    header("HTTP/1.0 400 error de parametros");
     echo "objetivo_id no existe";
     exit();
 }
 
-/*if (!isset($_REQUEST['type'])) {
+if (!isset($_REQUEST['type'])) {
     header("HTTP/1.0 400 error de parametros");
     echo "type no existe";
     exit();
@@ -27,35 +26,29 @@ if (!$current_usuario_id) {
     echo "no existe usuario para el objetivo_id";
     exit();
 }
-*/
 if (isset($_REQUEST['usuario_id'])) {
    unset($current_usuario_id);
    $current_usuario_id = $_REQUEST['usuario_id'];
 
 }
-
 $usr = new Usuario($current_usuario_id);
 $usr->__Usuario();
-
-/*$objetivo1 = $usr->getObjetivo($_REQUEST['objetivo_id'], REP_DATOS_ESPECIALES);
+$objetivo1 = $usr->getObjetivo($_REQUEST['objetivo_id'], REP_DATOS_ESPECIALES);
 if ($objetivo1 == null) {
     header("HTTP/1.0 400 error de parametros");
     echo "objetivo_id invalido";
     exit();
 }
-*/
 $objetivo = new ConfigEspecial($_REQUEST['objetivo_id']);
 $type = $objetivo->getTypeById($_REQUEST['type']);
 $sub_objetivos = $objetivo->getSubobjetivos();
-
-/*if ($type == null) {
+if ($type == null) {
     header("HTTP/1.0 400 error de parametros");
     echo "type invalido";
     exit();
 }
-*/
 //$subobjetivo_xml variable que almacena si se envia un subobjetivo
-/*if (isset($_REQUEST['subobjetivo_id'])) {
+if (isset($_REQUEST['subobjetivo_id'])) {
     $subobjetivo_xml = $objetivo->getSubobjetivo($_REQUEST["subobjetivo_id"]);
     if ($subobjetivo_xml == null) {
         header("HTTP/1.0 400 error de parametros");
@@ -63,15 +56,12 @@ $sub_objetivos = $objetivo->getSubobjetivos();
         exit();
     }   
 }
-*/
 //
 if (!valida_token($_REQUEST['token'])) {
-    header("HTTP/1.0 400 error de parametros (valida token)");
+    header("HTTP/1.0 400 error de parametros");
     echo "token invalido";
     exit();
 }
-
-
 /* VARIABLES OPCIONALES */
 if (isset($_REQUEST['fecha_inicio']) and isset($_REQUEST['fecha_termino'])) {
     $timestamp = new Timestamp($_REQUEST['fecha_inicio'], $_REQUEST['fecha_termino']);
@@ -79,10 +69,7 @@ if (isset($_REQUEST['fecha_inicio']) and isset($_REQUEST['fecha_termino'])) {
 } else {
     $timestamp = new Timestamp(date("Y-m-d 00:00:00"), date("Y-m-d 00:00:00"));
 }
-
-
-
-/*if (isset($_REQUEST['horario_id'])) {
+if (isset($_REQUEST['horario_id'])) {
     $horario = $usr->getHorario($_REQUEST['horario_id']);
     if ($horario == null) {
         header("HTTP/1.0 400 error de parametros");
@@ -93,16 +80,18 @@ if (isset($_REQUEST['fecha_inicio']) and isset($_REQUEST['fecha_termino'])) {
 } else {
     $horario_id = 0;
 }
-*/
 /* SI EL REPORTE ESPECIAL MUESTRA UN PDF */
 if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
-    // $carpeta=mkdir("tmp_".$_REQUEST['usuario_id'],0777);
-     //echo $_REQUEST['usuario_id'];
     $html = REP_DOMINIO . "acceso_especial.php?acceso_pdftohtml=1&es_pdf=true";
     foreach ($_REQUEST as $nombre => $valor) {
         $html.="&" . $nombre . "=" . urlencode($valor);
     }
-
+    
+    $pdf= "tmp/file_" . md5(time()) . ".pdf";
+    /* NOMBRE PDF : OBJETIVO */
+    $dwn_objetivo = $objetivo->nombre . "_";
+    $dwn_periodo = $timestamp->toString();
+    /* NOMBRE PDF : REPORTE */
     $sactual = Seccion::getSeccionPorDefecto(34);
     $secciones = $sactual->getSeccionesNivel(1);
     $dwn_reporte = "";
@@ -111,28 +100,14 @@ if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
             $dwn_reporte = $seccion->nombre . "_";
         }
     }
-    $dwn_objetivo = $objetivo->nombre . "_";
- 
-   $dwn_periodo = $timestamp->toString();
+    /* NOMBRE COMPLETO PDF */
     $dwn_completo = $dwn_reporte . $dwn_objetivo . $dwn_periodo . ".pdf";
     $dwn_completo = str_replace(array(" - ", " ", "/", ","), array("_", "-", "-", "-"), $dwn_completo);
-    
-    $pdf = "tmp_".$_REQUEST['usuario_id']."/".$dwn_completo;
-    echo is_array($dwn_completo);
-
-    /* NOMBRE PDF : OBJETIVO */
-  
-    
-    /* NOMBRE PDF : REPORTE */
-    
-    /* NOMBRE COMPLETO PDF */
-   
     exec(REP_PATH_HTMLTOPDF . " --dpi 180 -T 30mm -B 18mm -L 2mm -R 2mm " .
             "--header-spacing 10 --header-html " . REP_PATH_TEMPLATES . "header_pdf.html --javascript-delay 2500 " .
             "--footer-html " . REP_PATH_TEMPLATES . "footer_pdf.html " .
-            escapeshellcmd($html) . " '" . $pdf . "'", $result);
+            escapeshellcmd($html) . " '" . escapeshellcmd($pdf) . "'", $result);
     ob_clean();
-
     header("Cache-Control:  maxage=1");
     header("Pragma: public");
     header("Content-type: application/pdf");
@@ -140,9 +115,90 @@ if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
     $file = fopen($pdf, "r");
     fpassthru($file);
     //unlink($pdf);
-        echo "adadadasd".$pdf;
-}
+    $fecha_inicio= substr($_REQUEST['fecha_inicio'],0,strlen($_REQUEST['fecha_inicio'])-9);
+    $fecha_termino= substr($_REQUEST['fecha_termino'],0,strlen($_REQUEST['fecha_termino'])-9);
+    $periodo=strtotime($fecha_termino) - strtotime($fecha_inicio);
+    if ($periodo==2678400 || $periodo==2592000 || $periodo==2419200 || $periodo==2505600){
+    $periodo='mensual'; 
+    }   
+    if ($periodo==86400){
+    $periodo='diario'; 
+    }  
+    if ($periodo==604800){
+    $periodo='semanal'; 
+    }  
+    $nom_objetivo = $objetivo->nombre . "_";
+    $desc_periodo = $timestamp->toString();
+    $nom_objetivo = str_replace(array(" - ", " ", "/", ","), array("_", "-", "-", "-"), $nom_objetivo);
+    $desc_periodo = str_replace(array(" - ", " ", "/", ","), array("_", "-", "-", "-"), $desc_periodo);
+    $dwn_reporte = str_replace(array(" - ", " ", "/", ","), array("_", "-", "-", "-"), $dwn_reporte);
+    $cadena_email=$objetivo->__direccion;
+    $contador_direccion=0;
+    $largo_email=count($objetivo->__direccion);
+    $lenguage = 'es_ES.UTF-8';
+    putenv("LANG=$lenguage");
+    setlocale(LC_ALL, $lenguage);
+    $organizador='';
+    $ruta_directorio='';
+    $mes=strftime("%B-%Y");
+    $semana="Semana-N-".strftime("%V")."-".strftime("%d-%B-%Y");
+    $dia=strftime("%d-%B-%Y");
+    for ($i=0; $i<$largo_email;$i++){
+        chdir('../../../../home/oparra/gdrive/Reportes_Especiales_Betav4/');
+        if ($periodo=='mensual' && strftime('%d')=='17'){
+            $ruta_directorio = ''.$cadena_email[$contador_direccion].'/Reportes_Especiales/Reporte_'.$periodo;
+            if (!file_exists($ruta_directorio)) {
+                mkdir($ruta_directorio, 0777, true);
+                chmod($ruta_directorio, 0777);
+            }
+            chdir($ruta_directorio);
+            $organizador=$mes; 
+            mkdir($organizador, 0777, true);
+            chmod($organizador, 0777);
 
+        }
+        else if ($periodo=='semanal' && strftime('%A')=='martes'){
+            $ruta_directorio = ''.$cadena_email[$contador_direccion].'/Reportes_Especiales/Reporte_'.$periodo;
+            if (!file_exists($ruta_directorio)) {
+                mkdir($ruta_directorio, 0777, true);
+                chmod($ruta_directorio, 0777);
+            }
+            chdir($ruta_directorio);
+            $organizador=$semana; 
+            mkdir($organizador, 0777, true);
+            chmod($organizador, 0777);
+
+        } 
+        else if ($periodo=='diario'){
+            $ruta_directorio = ''.$cadena_email[$contador_direccion].'/Reportes_Especiales/Reporte_'.$periodo;
+            if (!file_exists($ruta_directorio)) {
+                mkdir($ruta_directorio, 0777, true);
+                chmod($ruta_directorio, 0777);
+            } 
+            chdir($ruta_directorio);
+            $organizador=$dia; 
+            mkdir($organizador, 0777, true);
+            chmod($organizador, 0777);   
+        }
+        chdir('../../../');
+        $pdf_directorio="".$ruta_directorio."/".$organizador."/".$dwn_reporte.$nom_objetivo.$desc_periodo.".pdf";
+        if (strftime('%d')=='17' || strftime('%d')==17 && $periodo=='mensual'  || $periodo=='semanal' && strftime('%A')=='martes' || $periodo=='diario'){
+            exec(REP_PATH_HTMLTOPDF . " --dpi 180 -T 30mm -B 18mm -L 2mm -R 2mm " .
+            "--header-spacing 10 --header-html " . REP_PATH_TEMPLATES . "header_pdf.html --javascript-delay 2500 " .
+         "--footer-html " . REP_PATH_TEMPLATES . "footer_pdf.html " .
+            escapeshellcmd($html) . " '" . $pdf_directorio . "'", $result);
+            ob_clean();
+            header("Cache-Control:  maxage=1");
+            header("Pragma: public");
+            header("Content-type: application/pdf");
+            header("Content-Disposition: attachment; filename=" . $dwn_completo);
+        }
+        $file_directorio = fopen($pdf_directorio, "r");    
+        fpassthru($file_directorio);
+        $contador_direccion=$contador_direccion+1;
+    }
+    //unlink($pdf);
+}
 /* SI EL REPORTE ESPECIAL MUESTRA UN INFORME Y ES ENVIADO POR MAIL*/ 
 elseif ($type->informe_id != null && $type->content == 'pdf' && isset($_REQUEST["es_especial"])) {
     $tipo_pdf_especial = true;
@@ -315,7 +371,7 @@ function valida_token($token) {
     global $type;
 
     $sql = "SELECT token_id FROM public.token " .
-            "WHERE token ='" . $token . "' ";
+            "WHERE token ='" . $token . "' AND extract(epoch from age(now(),fecha))<60000000";
     $res = & $mdb2->query($sql);
     if (MDB2::isError($res)) {
         return false;
@@ -325,11 +381,11 @@ function valida_token($token) {
     if ($row = $res->fetchRow()) {
         if ($type->content != 'pdf' or isset($_REQUEST["acceso_pdftohtml"])) {
             $token_id = $row["token_id"];
-           // $sql2 = "DELETE FROM public.token WHERE token_id  = " . $token_id;
-           // $res2 = & $mdb2->query($sql2);
-           // if (MDB2::isError($res2)) {
-             //   return false;
-           // }
+            $sql2 = "DELETE FROM public.token WHERE token_id  = " . $token_id;
+            $res2 = & $mdb2->query($sql2);
+            if (MDB2::isError($res2)) {
+                return false;
+            }
         }
         return true;
     } else {

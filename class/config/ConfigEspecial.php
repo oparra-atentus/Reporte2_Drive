@@ -68,7 +68,19 @@ class ConfigEspecial extends Objetivo {
                 	$this->titulo = $xpath->query("titulo", $information)->item(0)->nodeValue;
                 	$this->information = $xpath->query("informacion", $information)->item(0)->nodeValue;
                 }
-                
+               	//nueva modificacion para acceder a los atributos del tag email Creador:Oscar Fabián Parra
+               	/*$this->direccion=array();
+				foreach ($xpath->query("/atentus/config/especial") as $config) {
+					foreach ($xpath->query("email", $config) as $tag_email) {
+						foreach ($xpath->query("destinatario", $tag_email) as $tag_destinatario) {
+							$this->nombre_direccion = $tag_destinatario->getAttribute('nombre');
+							array_push($this->direccion,$tag_destinatario->getAttribute('direccion'));
+						}	
+					}
+                } */  
+
+               
+               
 		foreach ($xpath->query("/atentus/config/especial") as $config) {
 			$this->position = $config->getAttribute('position');
 			foreach ($xpath->query("setup", $config) as $tag_setup) {
@@ -99,6 +111,7 @@ class ConfigEspecial extends Objetivo {
 				$this->header_atentus = $tag_setup->getAttribute('header_atentus');
 				$this->mostrar_contacto = $tag_setup->getAttribute('mostrar_contacto');
 				$this->item_bloque = $tag_setup->getAttribute('item_bloque');
+
 				
 				if ($tag_setup->getAttribute('form_template') != null or $tag_setup->getAttribute('form_template') != "") {
 					$this->form_template = $tag_setup->getAttribute('form_template');
@@ -125,7 +138,29 @@ class ConfigEspecial extends Objetivo {
 					$this->report_list = "false";
 				}
 			}
+			$this->__direccion=array();
+			$contador_direccion=0;
+			foreach ($xpath->query("email/destinatario", $config) as $tag_email) {
+			
+			      
+            	$this->nombre_email = $tag_email->getAttribute('nombre');
+            	$this->direccion_email = $tag_email->getAttribute('direccion');
+            	$this->__direccion[$contador_direccion]=$tag_email->getAttribute('direccion');
+            	$contador_direccion++;
+			}
 
+
+
+			$this->__destinatarios4= array();
+			foreach ($xpath->query("email", $config) as $tag_email) {
+		
+
+				foreach ($xpath->query("destinatario", $tag_email) as $tag_destinatario) {
+					$destinatario = $tag_destinatario->getAttribute('direccion');
+					$this->__destinatarios4[$tag_destinatario->getAttribute('direccion')] = $destinatario;
+				}
+				
+			}	
 			$this->__types = array();
 			foreach ($xpath->query("types/type", $config) as $tag_types) {
 				$type = new TypeEspecial($tag_types->getAttribute('name'), $tag_types->getAttribute('content-type'));
@@ -1296,7 +1331,80 @@ class ConfigEspecial extends Objetivo {
 		}
 		return $this->cache;
 	}
+   /* function getDirecciones(){
+    	$dom = new DomDocument();
+		$dom->preserveWhiteSpace = FALSE;
+		$dom->loadXML($this->__xml_config);
+		$xpath = new DOMXpath($dom);
+        $this->direccion=array();
+		foreach ($xpath->query("/atentus/config/especial") as $config) {
+			foreach ($xpath->query("email", $config) as $tag_email) {
+				foreach ($xpath->query("destinatario", $tag_email) as $tag_destinatario) {
+					$this->nombre_direccion = $tag_destinatario->getAttribute('nombre');
+					array_push($this->direccion,$tag_destinatario->getAttribute('direccion'));
+				}	
+			}
+        } 
+        return $this->direccion;  
+	}*/
 
+
+ 	
+function __Usuario() {
+		global $mdb2;
+		global $log;
+
+		$sql = "SELECT cu.nombre AS cliente_usuario_nombre, clave, ".
+			   "cu.zona_horaria_id, cu.lenguaje_id, c.pais_id, ".
+			   "cu.email AS cliente_usuario_email, ".
+			   "c.cliente_id, c.nombre AS cliente_nombre, ".
+			   "c.max_usuarios, c.max_notificaciones_por_usuario, c.max_horariohabil, ".
+			   "cu.telefono AS cliente_usuario_telefono, ".
+			   "cu.cargo AS cliente_usuario_cargo, ".
+			   "cu.preferencia_semaforo_orientacion AS orientacion_semaforo, ".
+			   "rp.reporte_perfil_id AS perfil_id, ".
+			   "rp.nombre AS perfil_nombre, ".
+			   "rp.prioridad AS perfil_prioridad, ".
+			   "c.usa_attools, c.usa_horariohabil, ".
+			   "(SELECT preferencia_semaforo_id FROM public.cliente_usuario_miperfil(cliente_usuario_id)) as periodo_semaforo_id, ".
+			   "(now() - cu.preferencia_semaforo_periodo) AS periodo_semaforo_inicio ".
+			   "FROM cliente_usuario cu, cliente c, reporte_perfil rp ".
+			   "WHERE cu.cliente_id=c.cliente_id ".
+			   "AND cu.reporte_perfil_id=rp.reporte_perfil_id ".
+			   "AND cu.cliente_usuario_id=".pg_escape_string($this->usuario_id);
+//		print($sql);
+		$res =& $mdb2->query($sql);
+		if (MDB2::isError($res)) {
+			$log->setError($sql, $res->userinfo);
+			exit();
+		}
+
+		if ($row = $res->fetchRow()) {
+			$this->clave_md5 = $row["clave"];
+			$this->nombre = $row["cliente_usuario_nombre"];
+			$this->email = $row["cliente_usuario_email"];
+			$this->telefono = $row["cliente_usuario_telefono"];
+			$this->cargo = $row["cliente_usuario_cargo"];
+			$this->zona_horaria_id = $row["zona_horaria_id"];
+			$this->idioma_id = $row["lenguaje_id"];
+			$this->pais_id = $row["pais_id"];
+			$this->cliente_id = $row["cliente_id"];
+			$this->cliente_nombre = $row["cliente_nombre"];
+			$this->perfil_id = $row["perfil_id"];
+			$this->perfil_nombre = $row["perfil_nombre"];
+			$this->perfil_prioridad = $row["perfil_prioridad"];
+			$this->periodo_semaforo_id = $row["periodo_semaforo_id"];
+			$this->periodo_semaforo_inicio = $row["periodo_semaforo_inicio"];
+			$this->orientacion_semaforo = $row["orientacion_semaforo"];
+//			$this->usa_googleanalytics = ($row["usa_googleanalytics"]=='t')?true:false;
+			$this->usa_horariohabil = ($row["usa_horariohabil"]=='t')?true:false;
+			$this->usa_herramientas = ($row["usa_attools"]=='t')?true:false;
+			$this->cnt_usuarios = $row["max_usuarios"];
+			$this->cnt_notificaciones = $row["max_notificaciones_por_usuario"];
+			$this->cnt_horariohabil = $row["max_horariohabil"];
+			$this->solo_lectura = $mdb2->only_read;
+		}
+	}
 
 	static function _validaIntervalo($val) {
 		return preg_match("/^[-]?(\d+)\s(day|month|year|week)[s]?$/i", $val);
