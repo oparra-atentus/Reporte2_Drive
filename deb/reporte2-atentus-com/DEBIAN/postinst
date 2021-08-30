@@ -3,7 +3,7 @@
 echo " "
 
 if [ -f /var/www/reporte2.atentus.com/config/application.ini ]; then
-	echo "Se encontro el archivo de configuracion 'application.ini' instalado: "
+       echo "Se encontro el archivo de configuracion 'application.ini' instalado: "
 else
 	cp /var/www/reporte2.atentus.com/config/application.ini.example /var/www/reporte2.atentus.com/config/application.ini
 	echo "Se instalo el archivo de configuracion 'application.ini' por defecto: "

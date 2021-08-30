@@ -229,6 +229,9 @@ class ConfigEspecial extends Objetivo {
 						$objetivo->parcial = $tag_objetivo->getAttribute('parcial');
 						$objetivo->nodos = $tag_objetivo->getAttribute('nodos');
 						$objetivo->alias = $tag_objetivo->getAttribute('alias');
+						$objetivo->horario = $tag_objetivo->getAttribute('horario');
+						$objetivo->nombre_horario = $tag_objetivo->getAttribute('nombre_horario');
+						$objetivo->report_excel = ($tag_objetivo->getAttribute('report_excel')=="true"?1:0);
 						foreach ($xpath->query("paso", $tag_objetivo) as $tag_paso) {
 							$paso = new Paso();
 							$paso->paso_id = $tag_paso->getAttribute('paso_orden');

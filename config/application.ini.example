@@ -15,6 +15,7 @@ html_to_jpg_app_path = "wkhtmltoimage-amd64"
 ext_lib_path = "tools/"
 ext_cgi_path = "/var/www/libreporte/cgi/"
 google_analytics_tracking_id = "UA-XXXXXXXX-X"
+api_host_ih="http://10.10.10.123:8089"
 
 [telefonos]
 arg_tel = "+54 (11) 4776 1101"

@@ -33,17 +33,6 @@ $horario_id = null;
 //Muestra el nombre del hosname en reporte.tpl
 $T->setVar('__hostname',getHostname());
 $T->setVar('remote__addr ', remote__addr);
-//echo $menu_id;
-if($menu_id!=92){
-	//echo 'normal';
-	$_SESSION["usa_calendario_limitado"] = $reporte->usa_calendario_limitado;
-	$_SESSION["usa_calendario_limitado_sc"] = 0;
-}else{
-	//echo 'sc';
-	$_SESSION["usa_calendario_limitado"] = 0;
-	$_SESSION["usa_calendario_limitado_sc"] = 1;
-}
-
 
 /* SI EL REPORTE USA CALENDARIO ONLINE */
 if ($reporte->usa_calendario) {

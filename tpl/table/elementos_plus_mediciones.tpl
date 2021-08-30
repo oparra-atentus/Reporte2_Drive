@@ -31,7 +31,7 @@
 							<table class="listado_mini" width="100%">
 								<tr>				    		
 									<th width="200">Paso</th>
-									<th width="100">Tamaño Total (KBytes)</th>
+									<th width="100">Tamaño Total (Bytes)</th>
 									<th width="100">Tiempo Total (Segs)</th>
                                                                         <th width="83">Estado Elementos</th>
                                                                         <th width="40"></th>

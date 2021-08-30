@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html style="margin-left: 0px;margin-right: 0px;border-right-width: 20px;border-left-width: 20px;padding-left: 20%;padding-right: 20%;">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="HandheldFriendly" content="true">
+		<meta name="keywords" content="css, javascript, html, responsive design, html5">
+		<title>Reporte Ejecutivo Semanal</title>
+		<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="/tools/bootstrap/js/bootstrap.js"></script>
+		<script type="text/javascript" src="/tools/fontawesome/js/fontawesome.min.js"></script>
+		<script type="text/javascript" src="/tools/moment/moment.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="/toolscss/bootstrap/css/bootstrap.css">
+		<link rel="stylesheet" type="text/css" href="/toolscss/fontawesome/css/all.min.css">
+		<script type="text/javascript" src="/tools/jspdf/jspdf.min.js"></script>
+		<script type="text/javascript" src="/tools/html2canvas/html2canvas.min.js"></script>
+	</head>
+	<style>
+
+		.modalDialog {
+			position: fixed;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			background: rgba(0,0,0,0.8);
+			z-index: 99999;
+			display:none;
+			-webkit-transition: opacity 400ms ease-in;
+			-moz-transition: opacity 400ms ease-in;
+			transition: opacity 400ms ease-in;
+			pointer-events: auto;
+		}
+		.modalDialog > div {
+			max-width: 300px;
+			position: relative;
+			margin: 10% auto;
+			padding: 5px 35px 13px 120px;
+			border-radius: 10px;
+			background: #fff;
+			background: -moz-linear-gradient(#fff, #999);
+			background: -webkit-linear-gradient(#fff, #999);
+			background: -o-linear-gradient(#fff, #999);
+			-webkit-transition: opacity 400ms ease-in;
+			-moz-transition: opacity 400ms ease-in;
+			transition: opacity 400ms ease-in;
+		}
+		.close {
+			background: #606061;
+			color: #FFFFFF;
+			line-height: 25px;
+			position: absolute;
+			right: -12px;
+			text-align: center;
+			top: -10px;
+			width: 24px;
+			text-decoration: none;
+			font-weight: bold;
+			-webkit-border-radius: 12px;
+			-moz-border-radius: 12px;
+			border-radius: 12px;
+			-moz-box-shadow: 1px 1px 3px #000;
+			-webkit-box-shadow: 1px 1px 3px #000;
+			box-shadow: 1px 1px 3px #000;
+		}
+		.close:hover {
+			background: #00d9ff;
+		 }
+		.box {
+		  float: right;
+		  vertical-align: middle;
+		  margin: 0px ;
+		  padding: 1px;
+		  min-height: 2px;
+		  max-width: 80%; 
+		  display: flex;
+		}
+		.box2 {
+		  vertical-align: middle;
+		  margin: 0px ;
+		  padding: 1px;
+		  min-height: 2px;
+		}
+	</style>
+	<body  >
+		<div id="buttonPdf"></div>
+		<div id="button2" style="text-align: center;">
+			<img src="img/cargando.gif">
+			<span class="textgris12" >Cargando Reporte. Espere Por Favor.</span>
+		</div>
+		<div id="cabecera"></div>
+		<div id="TituloBody" ></div>
+		<div id="rangoGrafi" class="box" ></div>
+		<div id="tabla_reporte" ></div> 
+		<div id="tabla_dispo_dias"></div>
+		<div id="openModal" class="modalDialog">
+		    <div id="botonModal" style="padding: 5px 5px 3px 5px;" >
+		        <a href="#close" title="Close" class="close" id="close" onclick="CloseModal();"><i class="fas fa-window-close"></i></a>
+		        <div id="botonModalCargando" >
+					   <span class="textgris12" >
+					  	 	<i class="fa fa-cog fa-spin fa-3x fa-fw " style=" font-size: 3vw; vertical-align: middle;"></i>
+					  	 	<i  style="text-align: center; font-size: 1vw; vertical-align: middle;">Generando PDF, Espere Por Favor.</i>
+					   </span>
+		        </div> 
+		    </div>
+		</div>
+		<!-- <div id="footer"></div> -->
+		<script>
+			function showModal() {
+			  	document.getElementById('openModal').style.display = 'block';
+			}
+			function CloseModal() {
+			  	document.getElementById('openModal').style.display = 'none';
+			}
+			document.getElementById("botonModalCargando").style.display = "none";
+			
+	        function componentesPDF(count,doc){
+	 			for (var i = 0; i < count; i++) {
+					html2canvas(document.getElementById("cabecera"),{
+					 	onrendered: (canvas)=>{
+					 		var pdf = canvas.toDataURL("image/png");
+		        			doc.addImage(pdf, 'PNG',3,1,200,25);
+		        		}
+					});
+					html2canvas(document.getElementById("footer"),{
+					 	onrendered: (canvas)=>{
+		        			var pdf = canvas.toDataURL("image/png");
+		        			doc.addImage(pdf, 'PNG',10,260,190,25);
+		        		}
+					})
+					doc.addPage()
+				}
+				for (var i = 0; i < count; i++) {
+					html2canvas(document.getElementById("cabecera"),{
+					 	onrendered: (canvas)=>{
+					 		var pdf = canvas.toDataURL("image/png");
+		        			doc.addImage(pdf, 'PNG',3,1,200,25);
+		        		}
+					});
+					html2canvas(document.getElementById("footer"),{
+					 	onrendered: (canvas)=>{
+		        			var pdf = canvas.toDataURL("image/png");
+		        			doc.addImage(pdf, 'PNG',10,260,190,25);
+		        		}
+					})
+					doc.addPage()
+				}
+
+	 		} 
+			function generaPDFcabecera(pages){
+				document.getElementById("buttonGeneraPDF").style.display = "none";
+				document.getElementById("close").style.display = "none";
+				document.getElementById("botonModalCargando").style.display = "block";
+				tasks = [document.getElementById("cabecera"),document.getElementById("TituloBody")]
+				for (var i = 1; i <= pages; i++) {
+					tasks.push(document.getElementById("descripcion_columna_"+i)) 
+				}
+				for (var i = 1; i <= pages; i++) {
+					tasks.push(document.getElementById("tabla_dias_"+i)) 
+				}
+				tasks.push(document.getElementById("footer"))
+				tasks = tasks.map(tab => html2canvas(tab))
+				const doc = new jsPDF();
+				Promise.all(tasks).then(canvases =>{
+					for (var i = 1; i <= pages * 2 ; i++) {
+	       				count=0
+	       				valPages = true
+	       				calculoMedidaTabla = 0
+	       				for (const canvas of canvases){
+							x= 3
+							y=1
+							width =200
+							if (i == 1){
+								if(count == 0){
+									const imgData = canvas.toDataURL('image/png');
+									doc.addImage(imgData, 'PNG', x, y, width, 0);
+								}
+								else if (count == 1){
+									x= 30
+									y=28
+									width =200
+									const imgData = canvas.toDataURL('image/png');
+									doc.addImage(imgData, 'PNG', x, y, width, 0);
+								}
+								else if(count == tasks.length - 1){
+									x= -16
+									y=270
+									width =220
+									const imgData = canvas.toDataURL('image/png');
+									doc.addImage(imgData, 'PNG', x, y, width, 0);
+								}else{
+									if (i == count-1){
+										x= 1
+										y=48
+										width =200
+										const imgData = canvas.toDataURL('image/png');
+										doc.addImage(imgData, 'PNG', x, y, width, 0);
+									}
+								}
+							}else{
+								if(count == 0){
+									const imgData = canvas.toDataURL('image/png');
+									doc.addImage(imgData, 'PNG', x, y, width, 0);
+								}
+								else if(count == tasks.length-1){
+									x= -16
+									y=270
+									width =220
+									const imgData = canvas.toDataURL('image/png');
+									doc.addImage(imgData, 'PNG', x, y, width, 0);
+								}else{
+									if (i+1 == count){
+										x= 3
+										y=28
+										width =200
+										const imgData = canvas.toDataURL('image/png');
+										doc.addImage(imgData, 'PNG', x, y, width, 0);	
+									}
+								}
+							}
+							if (i == pages * 2){
+							valPages = false
+							}
+							count++
+	       				}
+	       				if(valPages == true){
+	       					doc.addPage()
+	       				}
+	       			}
+	           		doc.save('Reporte Ejecutivo Semanal.pdf');
+	           		CloseModal()
+	           		document.getElementById("botonModalCargando").style.display = "none";
+	         	})
+			}
+			url = window.location.href
+	    	var url = new URL(url)
+	      	var parametros = url.searchParams.get('data')
+	      	var decodedStr = atob(parametros);
+	      	var res = decodedStr.split("&");
+	      	var objetivovar64 = "";
+	      	var userVar64 = "";
+	      	var tVar64 = "";
+	      	var tokenVar64 = "";
+	      	var wVar="-1";
+			for (var i = 0; i < res.length; i++) {
+				if (res[i].indexOf('objetivo=') == 0) {
+					objetivovar64 = res[i].split("=")[1]
+				}
+				if (res[i].indexOf('user=') == 0) {
+					userVar64 = res[i].split("=")[1]
+				}
+				if (res[i].indexOf('t=') == 0) {
+					tVar64 = res[i].split("=")[1]
+				}
+				if (res[i].indexOf('token=') == 0) {
+					tokenVar64 = res[i].split("=")[1]
+				}
+				if (res[i].indexOf('w=') == 0) {
+					wVar = res[i].split("=")[1]
+				}
+			}
+			if (objetivovar64 === "" || userVar64 === "" || tVar64 === "" || tokenVar64 === "") {
+				valorDiv = '<div>Falta ingreso de parámetro.</div>'
+				$("#menuTitulo").append(valorDiv)
+			} else {
+				$.ajax({
+					async: false,
+		            type: 'POST',
+		            url: 'utils/reporte_ejecutivo.php',
+		            data: {'objetivo': objetivovar64, 'user':userVar64,'t':tVar64, 'token':tokenVar64 , 'w':wVar},
+		            success: function (data) {
+		            	document.getElementById("button2").style.display = "none";
+		                dataparseSinValidar = JSON.parse(data)
+		                fechaTituloSeanaActu = moment(dataparseSinValidar[0].dataTitulos.inicio).format('DD/MM/YY');
+		                fechaTituloSemanaAnte = moment(dataparseSinValidar[0].dataTitulos.termino).format('DD/MM/YY');
+		                tituloCliente = dataparseSinValidar[0].dataTitulos.cliente
+		                titulo = dataparseSinValidar[0].dataTitulos.titulo
+		                encabezado = 
+		                ' <div class="box2" style="border: none; text-align: center; width:100%; ">' +
+		                '<h3 class="card-title" style="text-align: center; text-black-40; font-size: 2vw;">' + titulo +' de Disponibilidad  '+ fechaTituloSeanaActu + ' al ' + fechaTituloSemanaAnte + '</h3>' +
+		                '<h3 class="text-muted card-subtitle mb-2" style="text-align: center; font-size: 2vw;" >' + tituloCliente + '</h3>' +
+		                ' </div>' +
+		                '</div>'
+		                leyenda =
+		                '<div class="d-flex "  id="dibGrafico">' +
+		                '<div id="up"  class="p-2 text-black-50" style=" font-size: 1vw;"><i class="fas fa-circle" style="color: rgb(223,74,88); font-size: 1vw;  "></i> Fuera de SLA </div>' +
+		                '<div id="" class="p-2 text-black-50" style="font-size: 1vw;"><i class="fas fa-circle" style="color: rgb(62,176,88); font-size: 1vw;   "></i> Dentro de SLA' +
+		                " </div>"+
+		                '<div id="" class="p-2 text-black-50" style="font-size: 1vw;"><i class="fas fa-circle" style="color: rgb(123,125,128); font-size: 1vw;  "></i> Sin Medición' +
+		                " </div>";
+		                //footer = '<tr><td><img src="img/footer_pdf.png" width="100%"  align="center" /></td></tr>'
+		                cabecera = '<tr><td><img src="img/header_pdf.png" width="100%" align="center"/></td></tr>'
+						$("#TituloBody").append(encabezado)
+						$("#rangoGrafi").append(leyenda)
+						//$("#footer").append(footer)
+						$("#cabecera").append(cabecera)
+						Objective = ""
+						ObjectiveDisp = ""
+						function SortByColor(estaOvje) {
+							var larDispo = estaOvje[1].disponibilidad.length-1
+							var json = []
+							var estadosOvj = { 0: "text-danger", 1: "text-success",2: "text-secondary"}
+							$.each(estadosOvj, function (i, estadoOvj) {
+								$.each(estaOvje, function (j, est) {
+									
+									
+									if (est.color_uptime_Actual == estadoOvj) {
+										json.push(est)
+									}
+								})
+							})
+							return json.sort(((a, b) => (a.disponibilidad[larDispo].disponibilidad).replace("%", "") - (b.disponibilidad[larDispo].disponibilidad).replace("%", "")));
+						}
+						dataparse = SortByColor(dataparseSinValidar[1].data_objetivos)
+						contadorFila = 0
+						contadorTabla = 20
+						id_tabla = 1
+						numero_anterior = 0
+						$.each(dataparse, function (index, disponibilidad) {
+							valorObjetivo = disponibilidad.objetivo;
+							colorUptimeActual = disponibilidad.color_uptime_Actual;
+							colorUptimeAnterior = disponibilidad.color_uptime_anterior;
+							colorVariacion = disponibilidad.color_variacion;
+							colorrSla = disponibilidad.color_sla;
+							valorUptimeSem = disponibilidad.porcentaje_uptime;
+							iconoServicio = disponibilidad.icono;
+							nombreObjetivo = disponibilidad.nombre_objetivo;
+							uptimeAnterior = disponibilidad.uptime_anterior;
+							valVariacion = disponibilidad.variacion;
+							fflecha = disponibilidad.flecha;
+							colorFlecha = disponibilidad.color_flecha_variacion
+							valor4 = ""
+							parpadeo = ""
+							contadorFila++
+							if (contadorFila > contadorTabla){
+								contadorTabla = 20
+								id_tabla++
+								contadorFila = 0
+							}
+							if (id_tabla != numero_anterior) {
+								numero_anterior = id_tabla
+								tabla = '<table class="table table-hover " id="descripcion_columna_'+id_tabla+'" width="100%"><tr>'+
+								'<td class="text-black-40 border rounded-0" colspan="2"  style=" text-align: center; min-height: 10em; display: table-cell; '+
+								'vertical-align: middle; font-size: 1vw;">Nombre Servicio / Aplicación</td>'+
+								'<td class="text-black-40 border rounded-0"'+
+								'style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;"> SLA</td>' +
+								'<td class="text-black-40 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; '+
+								'vertical-align: middle; font-size: 1vw;">Uptime Semanal</td><td class="text-black-40 border rounded-0" '+
+								'style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;">Tipo</td>'+
+								'<td class="text-black-40 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; '+
+								'vertical-align: middle; font-size: 1vw;">Uptime Anterior</td><td class="text-black-40 border rounded-0" style="text-align: center; '+
+								'min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw; "colspan="2" >Variación Semanal</td>' + 
+								'</tr></table>'
+								sectDias = ""
+								$.each(dataparse[0].disponibilidad, function (i,item ) {
+									fechaInicial = item.fecha
+									day = (fechaInicial.split("-")[2])
+									month = fechaInicial.split("-")[1]
+									sectDias += '<td class="text-black-40 border rounded-0" style="font-size: 23px; text-align: center; '+
+									'min-height: 8em; display: table-cell; vertical-align: middle; font-size: 1vw; ">' + day + '/' + month + '</td>'
+								})
+
+								tabla_dias = '<table class="table table-hover" width="100%" id="tabla_dias_'+id_tabla+'" style="page-break-after: always; margin-bottom:0 !important;"  <tr>'+'<td class="text-black-50 border rounded-0" style="text-align: center; min-height:'+ '10em; display: table-cell; '+ 'vertical-align: middle; font-size: 1vw; " >Nombre Servicio / Aplicación</td>' + sectDias + '</tr></table> '
+									$("#tabla_reporte").append(tabla)
+									$("#tabla_dispo_dias").append(tabla_dias)
+							}	
+							colorPunto = '<td class="'+colorrSla+' border rounded-0" style="text-align: center; min-height: 10em;'+
+							'display: table-cell; vertical-align: middle; font-size: 1vw;"><i class="fa fa-circle  "></i></td>'
+							iconoServicioCcs = '<td class = "border rounded-0" style="text-align: center;  min-height: 10em; display: table-cell; '+
+							'vertical-align: middle; font-size: 1vw;"><i class=" text-nowrap  rounded-0 fa ' + iconoServicio + '" title="atWeb" '+
+							'style="color: rgb(123,125,128);"></i></td>'
+							Objective = '<tr class=" border rounded-0"><td colspan="2"  class=" border rounded-0 text-muted" '+
+							'style=" text-overflow: ellipsis; font-size: 18px; min-height: 10em; '+
+							'display: table-cell; vertical-align: middle;"><strong class=" text-black-40 " style=" min-height: 10em; '+
+							'display: table-cell; vertical-align: middle; font-size: 1vw; "> '+ nombreObjetivo + '</strong></td>' +  colorPunto +
+							'<td class="' + colorUptimeActual + ' border rounded-0 " style ="text-align: center;  min-height: 10em; display: '+
+							'table-cell; vertical-align: middle; font-size: 1vw;"><strong>' + valorUptimeSem + '</strong></td>' + iconoServicioCcs +
+							'<td class="'+colorUptimeAnterior+' border rounded-0" style="font-size: 17px; text-align: center;  min-height: 10em; '+
+							'display: table-cell; vertical-align: middle; font-size: 1vw; " "><strong>' + uptimeAnterior + '</strong></td>'+
+							'<td style="text-align: center;  min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;">'+ 
+							'<i class="fa '+ fflecha + ' ' +colorFlecha +' "></i></td><td class="'+colorFlecha+' border-right rounded-0 " style="font-size: 19px; '+
+							'text-align: center;  min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;" >'+
+							'<strong>' + valVariacion + '</strong></td>'
+							ObjectiveDisp = '<tr class=" border rounded-0"><td class="text-muted border rounded-0" '+
+							'style=" font-size: 18px;opacity: 1;filter: blur(0px);color: rgb(135,141,145); min-height: 10em; '+
+							'display: table-cell; vertical-align: middle;"><strong class=" text-black-40 " style=" min-height: 10em; '+
+							'display: table-cell; vertical-align: middle; font-size: 1vw; "> '+ nombreObjetivo + '</strong></td>' +'</td>'
+							$.each(disponibilidad.disponibilidad, function (ind, disp) {
+								fechaInicial = disp.fecha_inicial
+								valorUptime = disp.disponibilidad
+								valorColor = disp.color
+								if (typeof(disponibilidad.disponibilidad.variacion) != 'undefined') {
+									rendimientoPaso = "Sin datos"
+									ObjectiveDisp += '<td class="text-nowrap border rounded-0" style=" text-align: center;'+
+									'min-height: 10em; display: table-cell; vertical-align: middle; font-size: 17px;opacity: 0.80;'+
+									'background-color: rgba(255,255,255,0);color: rgb(255,255,255);" data-original-title="" title="">'+
+									'<span class="badge badge-primary" style="font-size: 1vw;  padding-top: 5px;background-color: ' + 
+									rendimientoPaso + ';' + 'margin: 1px; max-width: 80%;  max-height: 80%;">'+ rendimientoPaso +'</span></td>'
+								}else{
+									ObjectiveDisp += '<td class="text-nowrap border rounded-0" style="text-align: center;'+
+									'min-height: 10em; display: table-cell; vertical-align: middle; font-size: 17px;opacity: 0.80; '+
+									'background-color: rgba(255,255,255,0);color: rgb(255,255,255);"><span class="badge badge-primary" '+
+									'style="font-size: 1vw;  padding: 5px 15px 5px 15px; background-color: ' + valorColor + '; '+
+									'margin: 1px; font-size: 1vw;">'+ valorUptime +'</span>'+'</td>'
+								}
+							})
+							ObjectiveDisp += '</tr>'
+							$('#descripcion_columna_'+id_tabla).append(Objective)
+							$('#tabla_dias_'+id_tabla).append(ObjectiveDisp)
+						});	 
+						botonModal = '<button onclick="generaPDFcabecera('+id_tabla+')" class="btn btn-dark" style="text-align: center; margin: 15px 35px 13px 75px; " id="buttonGeneraPDF"><i class="fas fa-file-pdf"  style=" color:red; "> </i>'+
+						'<i style="text-align: center; text-black-40; font-size: 10;"> Descargar PDF</i></button>'
+						$("#botonModal").append(botonModal)	
+					},
+					error: function () {
+						document.getElementById("button2").style.display = "none";
+						document.getElementById("menuTitulo").style.backgroundColor = "#e4e4e4";
+						alerta = '<div><strong class="badge badge-danger">No se ha podido obtener la información </strong></div>'
+						$("#alerta").append(alerta)
+					}
+				});
+			}
+		</script>
+	</body>
+</html>

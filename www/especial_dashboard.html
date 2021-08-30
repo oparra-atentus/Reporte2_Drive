@@ -4,6 +4,8 @@
 	<title>Atentus.com - Especial Dashboard</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="/tools/bootstrap/js/popper.min.js"></script>
+	<script type="text/javascript" src="/tools/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<script type="text/javascript" src="/tools/bootstrap/js/bootstrap.js"></script>
 	<script type="text/javascript" src="/tools/fontawesome/js/fontawesome.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="/toolscss/bootstrap/css/bootstrap.css">
@@ -186,6 +188,7 @@
 		<div class="row">
 			<!-- LOGOS -->
 			<div class="container" id="logos" style="background-color: #fff; max-width: 92.5% !important"></div>
+			<div class="container d-flex flex-row" id="descripcion" align="justify" style="background-color: #fff; max-width: 92.5% !important;"></div>
 
 			<!-- TITULO REPORTE ESPECIAL -->
 			<div class="container" id="titulo" style="background-color: #e6e6e6; max-width: 92.5% !important"></div>
@@ -202,15 +205,15 @@
 			var objetivo = url.searchParams.get("objetivo")
 			var especialBogota = function() {
 				/*$(document).ready(function(){
-				  var altura_arr = []
-				  $('.card_style').each(function(){
-				    var altura = $(this).height()
-				    altura_arr.push(altura)
-				  })
-				  altura_arr.sort(function(a, b){return b-a})
-				  $('.card_style').each(function(){
-				    $(this).css('height',altura_arr[0])
-				  })
+				  var altura_arr = []
+				  $('.card_style').each(function(){
+				    var altura = $(this).height()
+				    altura_arr.push(altura)
+				  })
+				  altura_arr.sort(function(a, b){return b-a})
+				  $('.card_style').each(function(){
+				    $(this).css('height',altura_arr[0])
+				  })
 				})*/
 				circle_red = '<!-- SPINNER BOUNCE -->'+
 				'<div class="col-1">'+
@@ -240,8 +243,28 @@
 					async: false,
 					type: 'POST',
 					url: 'utils/especial_dashboard.php',
-					data: {'objetivo':  objetivo, 'token': token},
+					data: {'objetivo':  objetivo, 'token': token},
 					success: function(data) {
+						if (document.getElementById("up")) {
+							document.getElementById("up").remove()
+							document.getElementById("down").remove()
+							document.getElementById("downp").remove()
+							document.getElementById("warn").remove()
+							document.getElementById("detalle").remove()
+						}
+						desc = '<div id="up" class="p-2" style="font-size: .7vw;"><i class="fas fa-circle" style="color: #3bb71c; font-size: 10px;"></i> Uptime</div>'+
+						'<div id="downp" class="p-2" style="font-size: .7vw;"><i class="fas fa-circle" style="color: #ffd700; font-size: 10px;"></i> Downtime Parcial</div>'+
+						'<div id="down" class="p-2" style="font-size: .7vw;"><i class="fas fa-circle" style="color: #dc3545; font-size: 10px;"></i> Downtime</div>'+
+						'<div id="warn" class="p-2" style="font-size: .7vw;"><i class="fas fa-circle" style="color: #da8e1d; font-size: 10px;"></i> Warning Umbral Tiempo Respuesta</div>'+
+						'<div id="detalle" class="ml-auto p-2 d-none d-sm-none d-md-none d-lg-block"><i class="far fa-question-circle" data-toggle="tooltip" data-placement="left" data-html="true" title="<table><tr><td><strong>Uptime:</strong> Todos los puntos de observación del monitoreo no presentan incovenientes.</td></tr><tr><td><strong>Downtime:</strong> Todos los puntos de observación del monitoreo presentan un error.</td></tr><tr><td><strong>Downtime Parcial:</strong> Uno o más puntos de observación del monitoreo presentan un error.</td></tr><tr><td><strong>Warning Umbral Tiempo Respuesta:</strong> Se supero el tiempo de respuesta promedio definido en el umbral para el monitoreo.</td></tr></table>"></i></div>'
+				$("#descripcion").append(desc)
+				$(document).ready(function() {
+					$(function () {
+						$('[data-toggle="tooltip"]').tooltip()
+					})
+				})
+
+
 						var dateNowTime = new Date(Date.now())
 						const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 						var localTime = (dateNowTime.toLocaleTimeString('es-ES'))

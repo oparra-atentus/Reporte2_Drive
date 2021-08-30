@@ -645,7 +645,17 @@ class Tabla {
 								if ($dato != null) {
 									$strtime = floor(strtotime($dato->getAttribute("duracion")) / 86400000);
 									$T->setVar('__evento_respuesta', ($dato->getAttribute("respuesta") >= 0)?number_format(($dato->getAttribute("respuesta")/1000), 2, ',', '').' [s]':"S/I");
-									$T->setVar('__evento_duracion', ($strtime > 0)?"+$strtime d&iacute;a(s)":$dato->getAttribute("duracion"));
+									
+									$arrayDuaracion = explode(" ",$dato->getAttribute("duracion"));
+									if(count($arrayDuaracion) == 3){
+										$arrayDuaracioDias = $arrayDuaracion[0];
+										$arrayDuaracioTime = $arrayDuaracion[2];
+										$totalDuracionDias = "+".$arrayDuaracioDias." dia(s) ".substr($arrayDuaracioTime, 0, 8);
+									}else{
+										$arrayDuaracioTime = $arrayDuaracion[0];
+										$totalDuracionDias = substr($arrayDuaracioTime, 0, 8);
+									}
+									$T->setVar('__evento_duracion', $totalDuracionDias);
 								}
 								else {
 									$T->setVar('__evento_respuesta', '');
@@ -5287,14 +5297,14 @@ class Tabla {
 					$T->setVar('__print_class', ($linea % 2 == 0)?"celdaIteracion2":"celdaIteracion1");
 					$T->setVar('__nombrePaso',$conf_paso->getAttribute('nombre'));
 					$T->setVar('__idPaso',$conf_paso->getAttribute('paso_orden'));
-					$T->setVar('__tamanoTotal', number_format(($tag_dato->getAttribute('tamano_total')/1024),3,',','.'));
+					$T->setVar('__tamanoTotal', number_format(($tag_dato->getAttribute('tamano_total')),0,',','.'));
 
 					if (trim($tag_dato->getAttribute('respuesta')) == '') {
 						$T->setVar('__tiempoTotal', 'Error en la descarga');
 					} else {
 						preg_match("/(?P<hor>\d{2}):(?P<min>\d{2}):(?P<seg>\d{2}).(?P<mseg>\d+)/", $tag_dato->getAttribute('respuesta'), $tiempos);
 						$seg = ($tiempos["hor"]*3600)+($tiempos["min"]*60)+($tiempos["seg"]);
-						$T->setVar('__tiempoTotal', $seg.'.'.$tiempos["mseg"]);
+						$T->setVar('__tiempoTotal', $seg.','.$tiempos["mseg"]);
 					}
 
 					if ($tag_dato->getAttribute('estado') == "false" && trim($tag_dato->getAttribute('respuesta')) != "") {
@@ -7741,6 +7751,7 @@ class Tabla {
 			$categoria_acumulada = 0;
 			$acumulado_funcionalidad = 0;
 			$acumulado_pasos = 0;
+			$acumulado_pasos_cat = 0;
 			$cant_func = count($conjuntos);
 			$T->setVar('bloque_funcionalidad', '');
 			foreach ($conjuntos as $nombre_funcionalidad => $conjunto) {
@@ -7792,6 +7803,7 @@ class Tabla {
 					$dom->preserveWhiteSpace = FALSE;
 					$dom->loadXML($row["especial_disponibilidad_resumen_objetivopaso_v2"]);
 					$xpath = new DOMXpath($dom);
+					$acumulado_pasos = 0;
 					foreach ($conjunto as $obj_id => $objetivo) {
 						$obj_id =explode('|', $obj_id)[0];
 						foreach ($objetivo as $key_pasos => $paso) {
@@ -7963,6 +7975,7 @@ class Tabla {
 							$valor_paso = $valor_paso_json;
 						}
 						$acumulado_pasos += $valor_paso;
+						$acumulado_pasos_cat += $valor_paso;
 
 						$T->setVar('__valor_paso', number_format($valor_paso, 3, '.', ','));
 
@@ -8054,7 +8067,7 @@ class Tabla {
 				
 				$json_performance .= "]}";
 				$json_performance .= (($cant_func == ($contador_total+1))?"" : ",");
-				$acumulado_funcionalidad += $acumulado_pasos/$contador;
+				$acumulado_funcionalidad = $acumulado_pasos/$contador;
 				$T->setVar('__acumulado_funcionalidad', number_format($acumulado_funcionalidad, 3, '.', ','));
 				$contador_total++;
 				
@@ -8078,7 +8091,7 @@ class Tabla {
 			$T->setVar('__downtime_real_total', number_format(($downtime_real_acumulado_total/$contador2), 3, '.', ''));
 			$T->setVar('__tiempo_respuesta_total', number_format(($tiempo_respuesta_acumulado_total/$contador2), 3, '.', ''));
 
-			$categoria_acumulada = $acumulado_pasos/$contador2;
+			$categoria_acumulada = $acumulado_pasos_cat/$contador2;
 			$T->setVar('__acumulado_categoria', number_format($categoria_acumulada, 3, '.', ','));
 
 			$T->parse('bloque_categorias', 'BLOQUE_CATEGORIAS', true);
@@ -9697,6 +9710,7 @@ class Tabla {
 		$T->setBlock('tpl_contenido', 'BLOQUE_NODO', 'bloque_nodo');
 		$T->setBlock('tpl_contenido', 'BLOQUE_OBJETIVO', 'bloque_objetivo');
 		$T->setBlock('tpl_contenido', 'BLOQUE_OBJETIVOS', 'bloque_objetivos');
+		$T->setBlock('tpl_contenido', 'BLOQUE_PORCENTAJE_TOTAL', 'bloque_porcentaje_total');
 
 		$T->setBlock('tpl_contenido', 'HORARIO', 'horario');
 		$horario = $objetivo->getHorario($this->horario_id);
@@ -9705,6 +9719,7 @@ class Tabla {
 		$T->parse('horario', 'HORARIO', true);
 
 		$T->setVar('bloque_objetivos', '');
+		$T->setVar('bloque_porcentaje_total', '');
 		$valida_fila = 0;
 		foreach ($objetivo->getSubobjetivos() as $subobjetivo_id => $subobjetivo) {
 			if ($valida_fila == 0) {
@@ -9712,8 +9727,10 @@ class Tabla {
 			}else{
 				$valida = false;
 			}
+			$T->setVar('obj_id', $subobjetivo_id);
 			$T->setVar('__disp_res_objs', $this->getConsolidadoPorcentajeObjetivoEspecial($subobjetivo_id, $valida, $valida_fila, $multi_obj = true));
 			$T->parse('bloque_objetivos', 'BLOQUE_OBJETIVOS', true);
+			$T->parse('bloque_porcentaje_total', 'BLOQUE_PORCENTAJE_TOTAL', true);
 			$valida_fila++;
 		}
 
@@ -9764,6 +9781,9 @@ class Tabla {
 
 			$contador_class_nodo = 1;
 			$cuenta_datos = 0;
+			$contador_Porcentaje_total_uptime = 55;
+			$contador_guardoValor = 0;
+			$valorjj = 0;
 			$T->setVar('bloque_nodo', '');
 			foreach ($conf_nodos as $conf_nodo) {
 				$nodo_id = $conf_nodo->getAttribute("nodo_id");
@@ -9883,7 +9903,8 @@ class Tabla {
 		pg_escape_string($this->horario_id).", '".
 		pg_escape_string($this->timestamp->getInicioPeriodo())."', '".
 		pg_escape_string($this->timestamp->getTerminoPeriodo())."')";
-
+		
+		$T->setVar('__objetivo_id',$subobjetivo_id );
 		$T->setVar('__color_uptime', ($class_obj % 2 == 0)?"55a51c":"71c137");
 		$T->setVar('__color_downtime', ($class_obj % 2 == 0)?"d3222a":"e04f56");
 		$T->setVar('__color_no_mon', ($class_obj % 2 == 0)?"909090":"b2b2b2");
@@ -9946,6 +9967,404 @@ class Tabla {
 
 		$T->parse('bloque_objetivo', 'BLOQUE_OBJETIVO', true);
 		return $T->parse('out', 'tpl_tabla');
+	}
+
+	function getEspecialDisponibilidadResumen(){
+		global $mdb2;
+		global $log;
+		global $current_usuario_id;
+
+		$objetivo = new ConfigEspecial($this->objetivo_id);
+		$T =& new Template_PHPLIB(REP_PATH_PRINTTEMPLATES);
+		$T->setFile('tpl_contenido', 'especial_disponibilidad_resumen_variante.tpl');
+		$T->setBlock('tpl_contenido', 'BLOQUE_DATOS', 'bloque_datos');
+		$T->setBlock('tpl_contenido', 'BLOQUE_NODO', 'bloque_nodo');
+		$T->setBlock('tpl_contenido', 'BLOQUE_OBJETIVO', 'bloque_objetivo');
+		$T->setBlock('tpl_contenido', 'BLOQUE_OBJETIVOS', 'bloque_objetivos');
+		$T->setBlock('tpl_contenido', 'HORARIO', 'horario');
+		$horario = $objetivo->getHorario($this->horario_id);
+		$nombre_horario = $horario->nombre;
+		$T->setVar('__nombre_horario',$nombre_horario);
+		$T->parse('horario', 'HORARIO', true);
+		$T->setVar('bloque_objetivos', '');
+		$valida_fila = 0;
+		foreach ($objetivo->getSubobjetivos() as $subobjetivo_id => $subobjetivo) {
+			if ($valida_fila == 0) {
+				$valida = true;
+			}else{
+				$valida = false;
+			}
+			$T->setVar('__disp_res_objs', $this->getConsolidadoPorcentajeObjetivoSemaforoVariante($subobjetivo_id, $valida, $valida_fila, $multi_obj = true));
+			$T->parse('bloque_objetivos', 'BLOQUE_OBJETIVOS', true);
+			$valida_fila++;
+		}
+		$contador_class_objetivo = 1;
+		$T->setVar('bloque_objetivo', '');
+		foreach ($objetivo->getSubobjetivos() as $subobjetivo_id => $subobjetivo) {
+			$nombre_subobjetivo = $subobjetivo->nombre;
+			$T->setVar('__nombre_objetivo', $nombre_subobjetivo);
+			$T->setVar('__fecha_inicio', $this->timestamp->getInicioPeriodo("d/m/Y H:i:s"));
+			$mes = $this->timestamp->getInicioPeriodo("F");
+			$meses_EN = array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+			$meses_ES = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
+			$nombreMes = str_replace($meses_EN, $meses_ES, $mes);
+			$T->setVar('__mes', $nombreMes);
+			$T->setVar('__fecha_termino', date("d/m/Y 24:00:00", (strtotime($this->timestamp->getTerminoPeriodo("Y-m-d H:i:s")) - 1)));
+
+			$sql = "SELECT * FROM reporte.disponibilidad_resumen_consolidado_variante(".
+				pg_escape_string($current_usuario_id).",".
+				pg_escape_string($subobjetivo_id).", ".
+				pg_escape_string($this->horario_id).",' ".
+				pg_escape_string($this->timestamp->getInicioPeriodo())."', '".
+				pg_escape_string($this->timestamp->getTerminoPeriodo())."', ".
+				(isset($this->extra["variable"])?$usr->cliente_id:'0').")";
+				 //echo $sql;
+			$res = & $mdb2->query($sql);
+			if (MDB2::isError($res)) {
+				$log->setError($sql, $res->userinfo);
+				exit();
+			}
+			if ($row = $res->fetchRow()) {
+				$dom = new DomDocument();
+				$dom->preserveWhiteSpace = FALSE;
+				$dom->loadXML($row['disponibilidad_resumen_consolidado_variante']);
+				$xpath = new DOMXpath($dom);
+				unset($row["disponibilidad_resumen_consolidado_variante"]);
+			}
+			$conf_nodos = $xpath->query("/atentus/resultados/propiedades/nodos/nodo");
+			$conf_eventos = $xpath->query("/atentus/resultados/propiedades/eventos/evento");
+			$conf_objetivo = $xpath->query("/atentus/resultados/propiedades/objetivos/objetivo")->item(0);
+			$conf_pasos = $xpath->query("paso[@visible=1]", $conf_objetivo);
+			$cant_nodos = ($xpath->query("/atentus/resultados/propiedades/nodos/nodo")->length)-1;
+			$cant_pasos = ($xpath->query("paso[@visible=1]", $conf_objetivo)->length);
+			$rowspan_objetivo = ($cant_nodos * $cant_pasos);
+			$T->setVar('__rowspan_obj', $rowspan_objetivo);
+			$contador_class_nodo = 1;
+			$cuenta_datos = 0;
+			$T->setVar('bloque_nodo', '');
+			foreach ($conf_nodos as $conf_nodo) {
+				$nodo_id = $conf_nodo->getAttribute("nodo_id");
+				if ( $conf_nodo->getAttribute("nodo_id") == "0") {
+					continue;
+				}
+				if($contador_class_nodo%2 == 0){
+					$T->setVar('__class_nodo', 'celdaIteracion2');
+				}else{
+					$T->setVar('__class_nodo', 'celdaIteracion1');
+				}
+				$T->setVar('__rowspan_nodo', $cant_pasos);
+				$T->setVar('__nombre_nodo', $conf_nodo->getAttribute("nombre"));
+
+				$uptime = '';
+				$downtime = '';
+				$no_monitoreo = '';
+				$mantenimiento = '';
+				$contador_class_paso = 1;
+				$T->setVar('bloque_datos', '');
+				foreach ($conf_pasos as $paso) {
+					$paso_orden = $paso->getAttribute('paso_orden');
+					$T->setVar('__nombre_paso', $paso->getAttribute('nombre'));
+					if($contador_class_paso%2 == 0){
+						$T->setVar('__class_paso', 'celdaIteracion2');
+						$T->setVar('__color_uptime_obj', '55a51c');
+						$T->setVar('__color_downtime_obj', 'd3222a');
+						$T->setVar('__color_no_mon_obj', '909090');
+					}else{
+						$T->setVar('__class_paso', 'celdaIteracion1');
+						$T->setVar('__color_uptime_obj', '71c137');
+						$T->setVar('__color_downtime_obj', 'e04f56');
+						$T->setVar('__color_no_mon_obj', 'b2b2b2');
+					}
+					foreach ($conf_eventos as $eventos) {
+						$evento_id = $eventos->getAttribute('evento_id');
+						$conf_estadistica = $xpath->query("/atentus/resultados/detalles/detalle/detalles/detalle[@nodo_id=".$nodo_id."]/detalles/detalle[@paso_orden=".$paso_orden."]/estadisticas/estadistica[@evento_id=".$evento_id."]");						
+						if ($conf_estadistica->length == 0) {
+							if ($evento_id == 2) {
+								$downtime = '0.00000';
+							}
+							if ($evento_id == 1) {
+								$uptime = '0.00000';
+							}
+							if ($evento_id == 7) {
+								$no_monitoreo = '0.00000';
+							}
+							if ($evento_id == 3) {
+								$parcial = '0.00000';
+							}
+							if ($evento_id == 9) {
+								$mantenimiento = '0.00000';
+							}
+						}else{
+							$conf_estadistica_dato = $conf_estadistica->item(0);
+							$porcentaje = $conf_estadistica_dato->getAttribute('porcentaje');
+							if ($evento_id == 2) {
+								$downtime = $porcentaje;						
+							}
+							if ($evento_id == 1) {
+								$uptime = $porcentaje;						
+							}
+							if ($evento_id == 7) {
+								$no_monitoreo =  $porcentaje;
+							}
+							if ($evento_id == 3) {
+								$parcial = $porcentaje;
+							}
+							if ($evento_id == 9) {
+								$mantenimiento = $porcentaje;
+							}
+						}
+					}
+					$uptime_par = $uptime + $parcial;
+					$factor_total=$uptime_par + $downtime + $no_monitoreo;
+					$no_monitoreo_real = ($no_monitoreo * 100) / $factor_total;
+					$uptime_par = $uptime + $parcial;
+					$factor_total=$uptime_par + $downtime ;
+					$uptime_real = ($uptime_par * 100) / $factor_total;
+					$downtime_real = ($downtime * 100) / $factor_total;
+					$T->setVar('__downtime_porcentaje', number_format($downtime_real ,2, '.', ''));
+					$T->setVar('__uptime_porcentaje', number_format($uptime_real ,2, '.', ''));
+					$T->setVar('__no_monitoreo_porcentaje', number_format($no_monitoreo_real, 2, '.', ''));
+					$contador_class_paso++;
+					$cuenta_datos++;
+					$T->parse('bloque_datos', 'BLOQUE_DATOS', true);
+				}
+				$contador_class_nodo++;
+				$T->parse('bloque_nodo', 'BLOQUE_NODO', true);
+			}
+			$T->setVar('__consolidado', $this->getConsolidadoPorcentajeObjetivoSemaforoVariante($subobjetivo_id, $valida=true, $valida_fila, $multi_obj = false));
+			$T->setVar('__tiempos', $this->getDisponibilidadDowntimeEspecial($subobjetivo_id));
+			$T->setVar('__disp_res', $this->getTablaDisponibilidadDetalladaConsolidada($subobjetivo_id));
+			$contador_class_objetivo++;
+			$T->parse('bloque_objetivo', 'BLOQUE_OBJETIVO', true);
+		}		
+		$this->resultado = $T->parse('out', 'tpl_contenido');
+	}
+
+	function getConsolidadoPorcentajeObjetivoSemaforoVariante($subobjetivo_id, $valida, $class_obj, $multi_obj) {
+		global $mdb2;
+		global $log;
+		global $current_usuario_id;
+
+		$T =& new Template_PHPLIB( $this->extra["imprimir"]?REP_PATH_PRINTTEMPLATES:REP_PATH_TABLETEMPLATES);
+		$T->setFile('tpl_tabla', 'especial_consolidado_objetivo_disponibilidad_resumen.tpl');
+		$T->setBlock('tpl_tabla', 'BLOQUE_OBJETIVO', 'bloque_objetivo');
+
+		$sql_consolidado = "SELECT * FROM reporte.disponibilidad_detalle_semaforo_especial_variante(".
+		pg_escape_string($current_usuario_id).",".
+		pg_escape_string($subobjetivo_id).", ".
+		pg_escape_string($this->horario_id).", '".
+		pg_escape_string($this->timestamp->getInicioPeriodo())."', '".
+		pg_escape_string($this->timestamp->getTerminoPeriodo())."')";
+		//echo $sql_consolidado;
+		$T->setVar('__color_uptime', ($class_obj % 2 == 0)?"55a51c":"71c137");
+		$T->setVar('__color_downtime', ($class_obj % 2 == 0)?"d3222a":"e04f56");
+		$T->setVar('__color_no_mon', ($class_obj % 2 == 0)?"909090":"b2b2b2");
+		$T->setVar('__color_obj', ($class_obj % 2 == 0)?"ebebeb":"fff");
+		$T->setVar('__style_obj', ($multi_obj == true)?"":"font-weight: bold; font-size: 19px;");
+		if ($valida == true) {
+			$fila = '<tr>'.
+							'<td class="txtBlanco13b celdaTituloGris" align="left" style="background-color: #626262;">Objetivo</td>'.
+							'<td class="txtBlanco12b celdaTituloNaranjo" style="border-right: solid 1px #ffffff;" width="15%" align="center">Uptime</td>'.
+							'<td class="txtBlanco12b celdaTituloNaranjo" style="border-right: solid 1px #ffffff;" width="15%" align="center">Downtime</td>'.
+							'<td class="txtBlanco12b celdaTituloNaranjo" style="border-right: solid 1px #ffffff;" width="15%" align="center">No Monitoreo</td>'.
+						'</tr>';
+		}else{
+			$fila = '';
+		}
+		$T->setVar('__fila', $fila);
+		$res_consolidado = & $mdb2->query($sql_consolidado);
+		if (MDB2::isError($res_consolidado)) {
+			$log->setError($sql_consolidado, $res_consolidado->userinfo);
+			exit();
+		}
+		if ($row_consolidado = $res_consolidado->fetchRow()) {
+			$dom_consolidado = new DomDocument();
+			$dom_consolidado->preserveWhiteSpace = FALSE;
+			$dom_consolidado->loadXML($row_consolidado['disponibilidad_detalle_semaforo_especial_variante']);
+			$xpath_consolidado = new DOMXpath($dom_consolidado);
+			unset($row_consolidado["disponibilidad_detalle_semaforo_especial_variante"]);
+		}
+		$objetivo = $xpath_consolidado->query("/atentus/resultados/propiedades/objetivos/objetivo")->item(0);
+		$conf_estadisticas = $xpath_consolidado->query("/atentus/resultados/detalles/detalle/estadisticas/estadistica");
+
+		foreach ($conf_estadisticas as $estadistica){
+			if ($estadistica->getAttribute('evento_id') == 1) {
+				$uptime_con_obj = $estadistica->getAttribute('porcentaje');
+			}
+			if ($estadistica->getAttribute('evento_id') == 2) {
+				$downtime_con_obj = $estadistica->getAttribute('porcentaje');
+			}
+			if ($estadistica->getAttribute('evento_id') == 3) {
+				$parcial_con_obj = $estadistica->getAttribute('porcentaje');
+			}
+			if ($estadistica->getAttribute('evento_id') == 7) {
+				$no_mon_con_obj = $estadistica->getAttribute('porcentaje');
+			}
+			if ($estadistica->getAttribute('evento_id') == 9) {
+				$mantenimiento = $estadistica->getAttribute('porcentaje');
+			}
+		}
+		$uptime_con_obj_real = $uptime_con_obj + $parcial_con_obj;
+		$factor = $uptime_con_obj_real + $downtime_con_obj + $no_mon_con_obj;
+		$no_mon_real = ($no_mon_con_obj * 100) / $factor;
+		$factor = $uptime_con_obj_real + $downtime_con_obj ;
+		$uptime_real = ($uptime_con_obj_real * 100) / $factor;
+		$downtime_real = ($downtime_con_obj * 100) / $factor;
+		$T->setVar('__uptime', number_format($uptime_real, 2, '.', ''));
+		$T->setVar('__downtime', number_format($downtime_real, 2, '.', ''));
+		$T->setVar('__no_monitoreo', number_format($no_mon_real, 2, '.', ''));
+		$T->setVar('__nombre_obj', $objetivo->getAttribute('nombre'));
+		$T->parse('bloque_objetivo', 'BLOQUE_OBJETIVO', true);
+		return $T->parse('out', 'tpl_tabla');
+	}
+
+	function getTablaDisponibilidadDetalladaConsolidada($sub_obj){
+		global $mdb2;
+		global $log;
+		global $current_usuario_id;
+		global $usr;
+		//exit;
+		$event = new Event;
+		$graficoSvg = new GraficoSVG();
+		$objetivo = new ConfigObjetivo($sub_obj);
+		# Variables para eventos especiales marcados por el cliente codigo 9.
+		$timeZoneId = $usr->zona_horaria_id;
+		$arrTime = Utiles::getNameZoneHor($timeZoneId); 		
+		//exit;
+		$timeZone = $arrTime[$timeZoneId];
+		$nameFunction =  'tabla_detallado_disponibilidad';
+		$tieneEvento = 'false';
+		$dataMant = null;
+		$marcado = false;
+		$encode = null;
+		$ids= null;
+		/* TEMPLATE DEL GRAFICO */
+		$T =& new Template_PHPLIB(($this->extra["imprimir"])?REP_PATH_PRINTTEMPLATES:REP_PATH_TABLETEMPLATES);
+		$T->setFile('tpl_tabla', 'disponibilidad_resumen_especial_disponibilidad_resumen.tpl');
+		$T->setBlock('tpl_tabla', 'BLOQUE_PASOS', 'bloque_pasos');
+		$T->setBlock('tpl_tabla', 'BLOQUE_TITULO_HORARIOS', 'bloque_titulo_horarios');
+		$T->setBlock('tpl_tabla', 'BLOQUE_HORARIOS', 'bloque_horarios');
+		$orden = 1;
+		$sql = "SELECT * FROM reporte.disponibilidad_resumen_consolidado_variante (".
+				pg_escape_string($current_usuario_id).",".
+				pg_escape_string($sub_obj).", ".
+				pg_escape_string($this->horario_id).",' ".
+				pg_escape_string($this->timestamp->getInicioPeriodo())."', '".
+				pg_escape_string($this->timestamp->getTerminoPeriodo())."', ".
+				(isset($this->extra["variable"])?$usr->cliente_id:"0").")";
+				$res = & $mdb2->query($sql);
+		if (MDB2::isError($res)) {
+			$log->setError($sql, $res->userinfo);
+			exit();
+		}
+		$row = $res->fetchRow();
+		$dom = new DomDocument();
+		$dom->preserveWhiteSpace = FALSE;
+		$dom->loadXML($row["disponibilidad_resumen_consolidado_variante"]);
+		$xpath = new DOMXpath($dom);
+		if ($orden == 1){
+			# Busca marcados dentro del xml.
+			foreach ($xpath->query("/atentus/resultados/detalles_marcado/detalle/marcado") as $tag_marcado) {
+			$ids = $ids.','.$tag_marcado->getAttribute('mantenimiento_id');
+			$marcado = true;
+			}	
+			# Verifica y asigna variables en caso de que exista marcado.
+			if ($marcado == true) {
+				$dataMant =$event->getData(substr($ids, 1), $timeZone);
+				$character = array("{", "}");
+				$objetives = explode(',',str_replace($character,"",($dataMant[0]['objetivo_id'])));
+				$tieneEvento = 'true';
+				$encode = json_encode($dataMant);
+				$T->setVar('__tiene_evento', $tieneEvento);
+				$T->setVar('__name', $nameFunction);
+			}
+		}
+		$conf_eventos = $xpath->query("/atentus/resultados/propiedades/eventos/evento");			
+		/* SI NO HAY DATOS MOSTRAR MENSAJE */
+		if (!$xpath->query("/atentus/resultados/propiedades/objetivos/objetivo/paso[@visible=1]")->length) {
+			$this->resultado = $this->__generarContenedorSinDatos();
+			return;
+		}
+		$T->setVar('bloque_pasos','');
+		$uptime = 0;
+		$downtime = 0;
+		$d_parcial  = 0;
+		$no_mon = 0;
+		$uptime_real = 0;
+		$factor = 0;
+		$uptime_real_obj = 0;
+		$downtime_real_obj = 0;
+		$no_mon_real_obj = 0;
+		$mantenimiento= 0;
+		$linea = 1;
+		foreach ($xpath->query("/atentus/resultados/propiedades/objetivos/objetivo/paso[@visible=1]") as $conf_paso) {
+			$tag_paso = $xpath->query("/atentus/resultados/detalles/detalle/detalles/detalle[@nodo_id=0]/detalles/detalle[@paso_orden=".$conf_paso->getAttribute("paso_orden")."]")->item(0);
+			$T->setVar('__print_class', ($linea % 2 == 0)?"celdaIteracion1":"celdaIteracion2");
+			$T->setVar('__class', ($linea % 2 == 0)?"celdanegra15":"celdanegra10");
+			$T->setVar('__color_uptime', ($linea % 2 == 0)?"71c137":"55a51c");
+			$T->setVar('__color_downtime', ($linea % 2 == 0)?"e04f56":"d3222a");
+			$T->setVar('__color_no_mon', ($linea % 2 == 0)?"b2b2b2":"909090");
+			$T->setVar('__pasoNombre', $conf_paso->getAttribute("nombre"));
+
+			foreach ($conf_eventos as $conf_evento) {
+				# Para que no muestre los datos eventos clientes cuando no existen en el periodo.
+				if ($marcado == false and $conf_evento->getAttribute("evento_id") == '9'){
+					$mantenimiento = '0.00000';
+					continue;
+				}
+				$tag_evento = $xpath->query("estadisticas/estadistica[@evento_id=".$conf_evento->getAttribute("evento_id")."]", $tag_paso);
+				if ($tag_evento->length != 0) {
+					if ($conf_evento->getAttribute("evento_id") == 1) {
+						$uptime = $tag_evento->item(0)->getAttribute("porcentaje");
+					}				
+					if ($conf_evento->getAttribute("evento_id") == 2) {
+						$downtime = $tag_evento->item(0)->getAttribute("porcentaje");
+					}
+					if ($conf_evento->getAttribute("evento_id") == 3) {
+						$d_parcial = $tag_evento->item(0)->getAttribute("porcentaje");
+					}
+					if ($conf_evento->getAttribute("evento_id") == 7) {
+						$no_mon = $tag_evento->item(0)->getAttribute("porcentaje");
+					}
+					if ($conf_evento->getAttribute("evento_id") == 9) {
+						$mantenimiento = $tag_evento->item(0)->getAttribute("porcentaje");
+					}
+				}else{
+					if ($conf_evento->getAttribute("evento_id") == 1) {
+						$uptime = '0.00000';
+					}				
+					if ($conf_evento->getAttribute("evento_id") == 2) {
+						$downtime = '0.00000';				
+					}
+					if ($conf_evento->getAttribute("evento_id") == 3) {
+						$d_parcial = '0.00000';
+					}
+					if ($conf_evento->getAttribute("evento_id") == 7) {
+						$no_mon = '0.00000';
+					}
+					if ($conf_evento->getAttribute("evento_id") == 9) {
+						$mantenimiento = '0.00000';
+					}
+				}			
+			}
+			$uptime_real = $uptime + $d_parcial;
+			$factor =  $uptime_real + $downtime + $no_mon ;
+			$no_mon_real_obj = ($no_mon * 100) / $factor;
+			$factor =  $uptime_real + $downtime ;
+			$uptime_real_obj = ($uptime_real * 100) / $factor;
+			$downtime_real_obj = ($downtime * 100) / $factor;
+			$T->setVar('__uptime_real_o', number_format($uptime_real_obj, 2, '.', ''));
+			$T->setVar('__downtime_real_o', number_format($downtime_real_obj, 2, '.', ''));
+			$T->setVar('__no_mon_real_o', number_format($no_mon_real_obj, 2, '.', ''));
+			$T->parse('bloque_pasos', 'BLOQUE_PASOS', true);
+			$linea++;
+		}
+		$this->tiempo_expiracion = (strtotime($xpath->query("//fecha_expiracion")->item(0)->nodeValue) - strtotime($xpath->query("//fecha")->item(0)->nodeValue));
+		return $T->parse('out', 'tpl_tabla');
+		/* Agrega el acordeon cuando existan eventos*/
+		if (count($dataMant)>0){
+			$this->resultado.= $graficoSvg->getAccordion($encode,$nameFunction);
+		}
 	}
 
 	/*Creado por:Aldo Cruz Romero

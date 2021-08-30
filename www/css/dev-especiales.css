@@ -881,6 +881,23 @@ table {
     height: 22px;
     background-position: -82px -115px;
 }
+.sprite-1010 {
+    width: 62px;
+    height: 18px;
+    background-position: -135px -302px;
+}
+
+.sprite-1011 {
+    width: 60px;
+    height: 18px;
+    background-position: -71px -301px;
+}
+
+.sprite-1012 {
+    width: 60px;
+    height: 18px;
+    background-position: -8px -301px;
+}
 
 .textblanco12 {
     font-family: Verdana, Arial, Helvetica, sans-serif;

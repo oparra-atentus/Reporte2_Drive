@@ -502,7 +502,7 @@ function elementosPlus(id){
 		document.getElementById('svgelem_'+this.nombreGrafico).appendChild(cuadrotext1);
 	
 		var cuadrotext2=document.createElementNS("http://www.w3.org/2000/svg",'text');
-                var nodoTexto2 = document.createTextNode(this.tiempoTotal.toFixed(3));
+                var nodoTexto2 = document.createTextNode(this.tiempoTotal.toFixed(3).replace('.',','));
                 cuadrotext2.setAttribute("x",this.anchoTotal-5);		
 		cuadrotext2.setAttribute("y",this.altoElementos+16);			
 		cuadrotext2.setAttribute('style',this.textTooltipb+'text-anchor: end');
@@ -534,7 +534,7 @@ function elementosPlus(id){
 		cuadrotext3.appendChild(nodoTexto3);		
 		document.getElementById('svgelem_'+this.nombreGrafico).appendChild(cuadrotext3);
 		var cuadrotext4=document.createElementNS("http://www.w3.org/2000/svg",'text');
-                var nodoTexto4 = document.createTextNode(this.totalTiempo.toFixed(3));
+                var nodoTexto4 = document.createTextNode(this.totalTiempo.toFixed(3).replace('.',','));
 		cuadrotext4.setAttribute("x",this.anchoTotal-5);		
 		cuadrotext4.setAttribute("y",this.altoElementos+36);	
 		cuadrotext4.setAttribute('style',this.textTooltipb+'text-anchor: end');
@@ -562,7 +562,7 @@ function elementosPlus(id){
 	
 		//IMPRIME EL VALOR DEL TAMAÑO TOTAL
 		var cuadrotext4=document.createElementNS("http://www.w3.org/2000/svg",'text');
-		var nodoTexto4 = document.createTextNode("Tamaño Total (KB)");
+		var nodoTexto4 = document.createTextNode("Tamaño Total (Bytes)");
 		cuadrotext4.setAttribute("x",10);		
 		cuadrotext4.setAttribute("y",this.altoElementos+56);	
 		cuadrotext4.setAttribute('style',this.textTooltipb);
@@ -570,8 +570,8 @@ function elementosPlus(id){
 		document.getElementById('svgelem_'+this.nombreGrafico).appendChild(cuadrotext4);
 	
 		var cuadrotext5=document.createElementNS("http://www.w3.org/2000/svg",'text');
-		var totalTamano=(this.totalBody+this.totalHeader)/1024;
-		var nodoTexto5 = document.createTextNode(totalTamano.toFixed(3));
+		var totalTamano=(this.totalBody+this.totalHeader);
+		var nodoTexto5 = document.createTextNode(formateoNumero(totalTamano));
 		cuadrotext5.setAttribute("x",this.anchoTotal-5);		
 		cuadrotext5.setAttribute("y",this.altoElementos+56);	
 		cuadrotext5.setAttribute('style',this.textTooltipb+'text-anchor: end');
@@ -955,7 +955,7 @@ function elementosPlus(id){
 		if(this.datos[indice][3].indexOf(':')!=-1 && this.datos[indice][4].indexOf(':')!=-1){
 			var tiempoDescarga=this.transformaSegundos(this.datos[indice][3])+this.transformaSegundos(this.datos[indice][4]);
 			var cuadrot2=document.createElementNS("http://www.w3.org/2000/svg",'text');
-			var nodoTexto2 = document.createTextNode(tiempoDescarga.toFixed(3));
+			var nodoTexto2 = document.createTextNode(tiempoDescarga.toFixed(3).replace('.',','));
 			cuadrot2.setAttribute("x",this.anchoTotal-5);		
 			cuadrot2.setAttribute("y",parseInt(y+(indice*20)));	
 			cuadrot2.setAttribute("style",this.textTooltip+"text-anchor:end");			
@@ -1550,6 +1550,12 @@ function elementosPlus(id){
 			return '#6e6e6e';
 		}
 	};
+
+        function formateoNumero(a){
+            num = a.toString().split('').reverse().join('').replace(/(?=\d*\.?)(\d{3})/g,'$1.');
+            num = num.split('').reverse().join('').replace(/^[\.]/,'');
+            return num;
+        }
         this.noData = function(id){
             var svg = document.getElementById("svgelem_"+id);
             var fondo = document.getElementById("fondo");

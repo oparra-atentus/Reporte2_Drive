@@ -70,12 +70,8 @@
             }
         </script>
 
-
-        <link rel="stylesheet" href="css/especiales.css" type="text/css"/>
-
-
     </head>
-    <a href="#" class="scrollup">Ir arriba</a>
+    <a href="#" class="scrollup"></a>
 
     <body class="nihilo">
         <div id="seccion_mantenencion" data-seccion='{seccion}' data-calendario='{calendario}' data-historial='{historial}' data-agregar='{agregar}'></div>

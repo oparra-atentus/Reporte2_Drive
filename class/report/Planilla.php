@@ -750,6 +750,379 @@ class Planilla {
 			print $this->resultado;
 
 	}
+
+	function getDisponibilidadPasos(){
+		global $mdb2;
+		global $log;
+		global $usr;
+		global $current_usuario_id;
+
+		$objetivo = new ConfigEspecial($this->objetivo_id);
+
+		$objPHPExcel = new PHPExcel();
+		$objWorksheet = $objPHPExcel->getActiveSheet();
+
+		$objPHPExcel->createSheet();
+		$objPHPExcel->setActiveSheetIndex(1);
+		$detalle_sheet = $objPHPExcel->getActiveSheet();
+
+		$arrayAlfabeto = array(1 => "A", 2 => "B", 3 => "C", 4 => "D", 5 => "E", 6 => "F", 7 => "G", 8 => "H", 9 => "I", 10 => "J", 11 => "K", 12 => "L", 13 => "M", 14 => "N", 15 => "O", 16 => "P", 17 => "Q", 18 => "R", 19 => "S", 20 => "T", 21 => "U", 22 => "V", 23 => "W", 24 => "X", 25 => "Y", 26 => "Z");
+		$style_border = array('borders' => array('bottom' => array('style' => PHPExcel_Style_Border::BORDER_MEDIUM,'color' => array('rgb' => 'FFFFFF')),'top' => array('style' => PHPExcel_Style_Border::BORDER_MEDIUM,'color' => array('rgb' => 'FFFFFF'))));
+		$style_align = array('alignment' => array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER));
+	    $fondo_negro = array('fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID,'color' => array('rgb' => '000000')),'font' => array('color' => array('rgb' => 'FFFFFF')),'borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => 'FFFFFF'))),'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER);
+	    $fondo_naranjo = array('fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID,'color' => array('rgb' => 'f77001')),'font' => array('color' => array('rgb' => 'FFFFFF')),'borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('rgb' => 'FFFFFF'))),'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER);
+	    $fondo_ok = array('fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID,'color' => array('rgb' => '54a51c')),'font' => array('color' => array('rgb' => 'FFFFFF')));
+	    $fondo_error = array('fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID,'color' => array('rgb' => 'd22129')),'font' => array('color' => array('rgb' => 'FFFFFF')));
+	    $fondo_gris = array('fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID,'color' => array('rgb' => 'd0d0d0')),'font' => array('color' => array('rgb' => 'FFFFFF')));
+
+	    $fondo_downtime_alto = array('fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID,'color' => array('rgb' => 'd22129')), 'font' => array('color' => array('rgb' => 'FFFFFF')));
+	    $fondo_no_monitoreo = array('fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID,'color' => array('rgb' => 'a1a1a1')), 'font' => array('color' => array('rgb' => 'FFFFFF')));
+
+		$mes = $this->timestamp->getInicioPeriodo("F");
+		$meses_EN = array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+		$meses_ES = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
+		$nombreMes = str_replace($meses_EN, $meses_ES, $mes);
+		$objWorksheet->getDefaultStyle()->applyFromArray($style_align)->getFont()->setName('Arial')->setSize(12)->setBold(true);
+		$objWorksheet->setTitle('Consolidado');
+
+		$objWorksheet->getColumnDimension('A')->setWidth(45);
+		$objWorksheet->getColumnDimension('B')->setWidth(29);
+		$objWorksheet->getColumnDimension('C')->setWidth(15);
+		$objWorksheet->getColumnDimension('D')->setWidth(15);
+		$objWorksheet->getColumnDimension('E')->setWidth(15);
+		$objWorksheet->getRowDimension('1')->setRowHeight(15);
+		$objWorksheet->getRowDimension('2')->setRowHeight(15);
+		$objWorksheet->setCellValue('A1', "Disponibilidad");
+		$objWorksheet->setCellValue('A2', "Objetivos");
+		$objWorksheet->setCellValue('B2', "Horario de Operación");
+		$objWorksheet->setCellValue('C2', "SLA");
+		$objWorksheet->setCellValue('D2', "Home");
+		$objWorksheet->setCellValue('E2', "Login");
+		$objWorksheet->getStyle('A1')->applyFromArray($fondo_naranjo);
+		$objWorksheet->mergeCells('B1:D1');
+		$objWorksheet->getStyle('B1:D1')->applyFromArray($fondo_naranjo);
+		$objWorksheet->setCellValue('B1', $nombreMes);
+
+		$detalle_sheet->setTitle('Detalle');
+
+		$contObjs = 3;
+		$contObjsDet = 1;
+		$contObjsDetPaso = 3;
+		$count_sheet = 3;
+		foreach ($objetivo->__objetivos as $subobjetivo) {
+			$contDowntimesGlobales = 5;
+			$down_global = $objPHPExcel->createSheet($count_sheet);
+			$objWorksheet->getRowDimension($contObjs)->setRowHeight(17);
+			$down_global->getColumnDimension('A')->setWidth(30);
+			$down_global->getColumnDimension('B')->setWidth(13);
+			$down_global->getColumnDimension('C')->setWidth(13);
+			$down_global->getColumnDimension('D')->setWidth(13);
+			$down_global->getColumnDimension('E')->setWidth(13);
+			$down_global->getColumnDimension('F')->setWidth(22);
+			$down_global->setCellValue('A1', "Hrs. Mes");
+			$down_global->setCellValue('B1', "Hrs. Exceptuadas de Monitoreo");
+			$down_global->setCellValue('C1', "Hrs. Efectivas de Monitoreo");
+			$down_global->setCellValue('D1', "Hrs. Indisponibilidad");
+			$down_global->setCellValue('E1', "Hrs. Disponibilidad");
+			$down_global->setCellValue('F1', "% Disponibilidad");
+
+			$down_global->getStyle('A1')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('B1')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('C1')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('D1')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('E1')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('F1')->applyFromArray($fondo_naranjo);
+
+			$down_global->setCellValue('A4', "Objetivo");
+			$down_global->setCellValue('B4', "Fecha");
+			$down_global->setCellValue('C4', "Hora Inicio");
+			$down_global->setCellValue('D4', "Hora Término");
+			$down_global->setCellValue('E4', "Duración");
+			$down_global->setCellValue('F4', "Tipo");
+
+			$down_global->getStyle('A4')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('B4')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('C4')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('D4')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('E4')->applyFromArray($fondo_naranjo);
+			$down_global->getStyle('F4')->applyFromArray($fondo_naranjo);
+
+			$down_global->setTitle(substr(str_replace(array("https://","http://","[","]","\\","/",":"), array("","","(",")"," "," ",""), $subobjetivo->nombre), 0, 30));
+			$count_sheet++;
+
+			if ($subobjetivo->horario == "") {
+				$horario_id = '0';
+			}else{
+				$horario_id = $subobjetivo->horario;
+			}
+
+			$objWorksheet->getStyle('A'.$contObjs.':A'.$contObjs)->applyFromArray($fondo_negro);
+			$sql = "SELECT * FROM reporte.disponibilidad_resumen_consolidado(".
+				pg_escape_string($current_usuario_id).",".
+				pg_escape_string($subobjetivo->objetivo_id).", ".
+				pg_escape_string($horario_id).", '".
+				pg_escape_string($this->timestamp->getInicioPeriodo())."', '".
+				pg_escape_string($this->timestamp->getTerminoPeriodo())."', ".
+				(isset($this->extra["variable"])?$usr->cliente_id:'0').")";
+
+			$res =& $mdb2->query($sql);
+
+			if (MDB2::isError($res)) {
+				$log->setError($sql, $res->userinfo);
+				exit();
+			}
+
+			if ($row = $res->fetchRow()) {
+				$dom = new DomDocument();
+				$dom->preserveWhiteSpace = FALSE;
+				$dom->loadXML($row['disponibilidad_resumen_consolidado']);
+				$xpath = new DOMXpath($dom);
+				unset($row["disponibilidad_resumen_consolidado"]);
+			}
+
+			///////////////////////////////////////////////////////////////////
+			$down_global->setCellValue('A'.$contDowntimesGlobales, $subobjetivo->nombre);
+
+			$sql2 = "SELECT * FROM reporte.disponibilidad_downtime_global(".
+				pg_escape_string($current_usuario_id).", ".
+				pg_escape_string($subobjetivo->objetivo_id).", ".
+				pg_escape_string($horario_id).", '".
+				pg_escape_string($this->timestamp->getInicioPeriodo())."', '".
+				pg_escape_string($this->timestamp->getTerminoPeriodo())."')";
+
+			$res2 =& $mdb2->query($sql2);
+
+			if (MDB2::isError($res2)) {
+				$log->setError($sql2, $res2->userinfo);
+				exit();
+			}
+
+			if ($row2 = $res2->fetchRow()) {
+				$dom2 = new DomDocument();
+				$dom2->preserveWhiteSpace = FALSE;
+				$dom2->loadXML($row2['disponibilidad_downtime_global']);
+				$xpath2 = new DOMXpath($dom2);
+				unset($row2["disponibilidad_downtime_global"]);
+			}
+
+			$fecha_inicio = strtotime($this->timestamp->fecha_inicio);
+			$fecha_termino = strtotime($this->timestamp->fecha_termino);
+
+			$fecha_inicio2 = strtotime($this->timestamp->fecha_inicio);
+			$fecha_termino2 = strtotime($this->timestamp->fecha_termino);
+
+			$dias_monitoreado = (($fecha_termino - $fecha_inicio)/3600)/24;
+			$tiempo_monitoreado = (($dias_monitoreado > 0)?$dias_monitoreado." día(s) ":"").date("H:i:s", ($fecha_termino - $fecha_inicio));
+
+			//hs mes
+			$down_global->setCellValue('A2', $tiempo_monitoreado);
+
+			$tag_datos_validador_datos = $xpath2->query("//detalle[@objetivo_id=".$subobjetivo->objetivo_id."]/datos")->item(0);
+			$no_monitoreo_acumulado = 0;
+			$downtime_acumulado= 0;
+			$total_nomonitoreo = 0;
+			$total_downtime= 0;
+			$contDatos = 5;
+			if ($tag_datos_validador_datos->getAttribute('acumulado') == '00:00:00') {
+				$down_global->mergeCells('B'.$contDatos.':F'.$contDatos);
+				$down_global->setCellValue('B'.$contDatos, 'Sin Caídas Globales');
+				$contDatos++;
+				$down_global->getRowDimension($contDatos)->setRowHeight(17);
+			}else{
+				while ($fecha_inicio < $fecha_termino) {
+					$tag_datos = $xpath2->query("//detalle[@objetivo_id=".$subobjetivo->objetivo_id."]/datos/dato[contains(@inicio, '".date("Y-m-d", $fecha_inicio)."')]");
+					if ($tag_datos->length == 0) {
+						$fecha_inicio = $fecha_inicio + 86400;
+						continue;
+					}else{
+						foreach ($tag_datos as $tag_dato) {
+							$conf_evento = $xpath2->query("//eventos/evento[@evento_id=".$tag_dato->getAttribute('evento_id')."]")->item(0);
+							if ($conf_evento->getAttribute('nombre') == 'Downtime' || $conf_evento->getAttribute('nombre') == 'No monitoreo') {
+								$newValue = $tag_dato->getAttribute('duracion');
+								if($tag_dato->getAttribute('duracion') == "1 day"){
+									$newValue = '24:00:00';
+								}
+
+								$total_downtime += ($tag_dato->getAttribute('evento_id') == 2)?(strtotime($newValue) - strtotime('00:00:00')):0;
+								$total_nomonitoreo += ($tag_dato->getAttribute('evento_id') == 7)?(strtotime($newValue) - strtotime('00:00:00')):0;
+								$hora_fin = date("H:i:s", strtotime($tag_dato->getAttribute('termino')));
+
+								$duracion =  ($tag_dato->getAttribute('duracion') == "1 day")?"24:00:00":$tag_dato->getAttribute('duracion');
+								$hora_inicio = date("H:i:s", strtotime($tag_dato->getAttribute('inicio')));
+								$hora_termino = ($hora_fin == "00:00:00")?"24:00:00":$hora_fin;
+								$diff = strtotime($hora_termino) - strtotime($hora_inicio);
+
+								$down_global->setCellValue('B'.$contDowntimesGlobales, date("d-m-Y", $fecha_inicio));
+								$down_global->setCellValue('C'.$contDowntimesGlobales, $hora_inicio);
+								$down_global->setCellValue('D'.$contDowntimesGlobales, $hora_termino);
+								$down_global->setCellValue('E'.$contDowntimesGlobales, $duracion);
+								$down_global->setCellValue('F'.$contDowntimesGlobales, ($conf_evento->getAttribute('nombre') == 'Downtime')?'Downtime Consolidado':$conf_evento->getAttribute('nombre'));
+								if ($conf_evento->getAttribute('nombre') == 'Downtime') {
+									$down_global->getStyle('F'.$contDowntimesGlobales)->applyFromArray($fondo_downtime_alto);
+								}else{
+									$down_global->getStyle('F'.$contDowntimesGlobales)->applyFromArray($fondo_no_monitoreo);
+								}
+
+								if ($diff > 600 && $conf_evento->getAttribute('nombre') == 'Downtime') {
+									$down_global->getStyle('B'.$contDowntimesGlobales)->applyFromArray($fondo_downtime_alto);
+									$down_global->getStyle('C'.$contDowntimesGlobales)->applyFromArray($fondo_downtime_alto);
+									$down_global->getStyle('D'.$contDowntimesGlobales)->applyFromArray($fondo_downtime_alto);
+									$down_global->getStyle('E'.$contDowntimesGlobales)->applyFromArray($fondo_downtime_alto);
+									$down_global->getStyle('F'.$contDowntimesGlobales)->applyFromArray($fondo_downtime_alto);
+								}
+								$contDatos++;
+								$down_global->getRowDimension($contDatos)->setRowHeight(17);
+							}else{
+								$contDatos++;
+								$down_global->getRowDimension($contDatos)->setRowHeight(17);
+								$fecha_inicio = $fecha_inicio + 86400;
+								continue;
+							}
+							$contDowntimesGlobales = $contDowntimesGlobales + 1;
+						}
+					}
+					$fecha_inicio = $fecha_inicio + 86400;
+				}
+			}
+			$total_disponibilidad = ($fecha_termino2 - $fecha_inicio2)-($total_nomonitoreo+$total_downtime);
+
+			$uptime_porcentaje = ($total_disponibilidad*100)/($fecha_termino2 - $fecha_inicio2);
+			$total_uptime = ((($total_disponibilidad/86400) > 0)?explode(".", ($total_disponibilidad/86400))[0]." día(s) ":"").date("H:i:s", ($total_disponibilidad));
+
+			$dias_nomonitoreo = floor($total_nomonitoreo / 86400);
+			$dias_downtime = floor($total_downtime / 86400);
+
+			$no_monitoreo_acumulado = (($dias_nomonitoreo > 0)?$dias_nomonitoreo." dia(s) ":"").date("H:i:s", $total_nomonitoreo - ($dias_nomonitoreo * 86400));
+			$downtime_acumulado = (($dias_downtime > 0)?$dias_downtime." dia(s) ":"").date("H:i:s", $total_downtime - ($dias_downtime * 86400));
+
+			$down_global->mergeCells('B'.($contDatos+1).':E'.($contDatos+1));
+			$down_global->mergeCells('B'.($contDatos+2).':E'.($contDatos+2));
+			$down_global->setCellValue('B'.($contDatos+1), 'No Monitoreo Acumulado');
+			$down_global->setCellValue('B'.($contDatos+2), 'Downtime Consolidado Acumulado');
+			$down_global->setCellValue('F'.($contDatos+1), $no_monitoreo_acumulado);
+			$down_global->setCellValue('F'.($contDatos+2), $downtime_acumulado);
+			$down_global->getStyle('B'.($contDatos+1))->applyFromArray($fondo_no_monitoreo);
+			$down_global->getStyle('B'.($contDatos+2))->applyFromArray($fondo_downtime_alto);
+			$down_global->getStyle('F'.($contDatos+1))->applyFromArray($fondo_no_monitoreo);
+			$down_global->getStyle('F'.($contDatos+2))->applyFromArray($fondo_downtime_alto);
+			$down_global->getRowDimension($contDatos+1)->setRowHeight(17);
+			$down_global->getRowDimension($contDatos+2)->setRowHeight(17);
+
+			$tiempo_en_segundos = (($fecha_termino2 - $fecha_inicio2)-(strtotime($no_monitoreo_acumulado)- strtotime('00:00:00')));
+
+			$tiempo_monitoreado = (($tiempo_en_segundos/86400 > 0)?explode(".", ($tiempo_en_segundos / 86400))[0]." dia(s) ":"").date("H:i:s", $tiempo_en_segundos);
+
+			//hs exceptuadas de monitoreo
+			$down_global->setCellValue('B2', $no_monitoreo_acumulado);
+		    //hs Efectivas de monitoreo
+		    $down_global->setCellValue('C2', $tiempo_monitoreado);
+			//hs indisponibilidad
+			$down_global->setCellValue('D2', $downtime_acumulado);
+			//hs disponibilidad
+			$down_global->setCellValue('E2', $total_uptime);
+			//% Disponibilidad
+			$down_global->setCellValue('F2', round($uptime_porcentaje, 2));
+			//////////////////////////////////////////////////////////////////
+
+			$objetivo_det = $xpath->query("/atentus/resultados/propiedades/objetivos/objetivo")->item(0);
+			$pasos_det = $xpath->query("/atentus/resultados/propiedades/objetivos/objetivo/paso[@visible=1]");
+
+			$objWorksheet->setCellValue('A'.$contObjs, $subobjetivo->nombre);
+			$objWorksheet->setCellValue('B'.$contObjs, $subobjetivo->nombre_horario);
+			$objWorksheet->setCellValue('C'.$contObjs, $subobjetivo->sla_p.'%');
+
+			$objDetalle = $objetivo->__objetivos[$this->objetivo_id];
+			if ($subobjetivo->report_excel == 1) {
+				$detalle_sheet->mergeCells('A'.($contObjsDet).':B'.($contObjsDet));
+				$detalle_sheet->setCellValue('A'.$contObjsDet, $subobjetivo->nombre);
+			}
+
+			$uptime_real = 0;
+			$factor_total = 0;
+			$contPasos = 4;
+			$valor = '';
+			foreach ($subobjetivo->__pasos as $paso) {
+				$pasoDet = $xpath->query('/atentus/resultados/detalles/detalle/detalles/detalle[@nodo_id=0]/detalles/detalle[@paso_orden='.$paso->paso_id.']')->item(0);
+
+				$uptime = 0;
+				$downtime = 0;
+				$downtime_parcial = 0;
+				foreach ($xpath->query("estadisticas/estadistica", $pasoDet) as $dato) {
+					if ($dato->getAttribute('evento_id') == '1') {
+						$uptime = $dato->getAttribute('porcentaje');
+					}
+					if ($dato->getAttribute('evento_id') == '2') {
+						$downtime = $dato->getAttribute('porcentaje');
+					}
+					if ($dato->getAttribute('evento_id') == '3') {
+						$downtime_parcial = $dato->getAttribute('porcentaje');
+					}
+				}
+				$uptime = $uptime+$downtime_parcial;
+				$factor_total = $uptime+$downtime;
+				$uptime_real = ($uptime * 100) / $factor_total;
+				if ($uptime_real >= $subobjetivo->sla_p) {
+					$objWorksheet->getStyle($arrayAlfabeto[($contPasos)].$contObjs)->applyFromArray($fondo_ok);
+				}else{
+					$objWorksheet->getStyle($arrayAlfabeto[($contPasos)].$contObjs)->applyFromArray($fondo_error);
+				}
+				if ($paso->descripcion == "true") {
+					$valor =  number_format($uptime_real, 2).'%';
+				}else{
+					$objWorksheet->getStyle($arrayAlfabeto[($contPasos)].$contObjs)->applyFromArray($fondo_gris);
+					$valor = '---';
+				}
+				
+				$objWorksheet->setCellValue($arrayAlfabeto[($contPasos)].$contObjs, $valor);
+				$contPasos++;
+				
+			}
+
+			$uptime_realDet = 0;
+			$factor_totalDet = 0;
+			$contPasosDet = 1;
+			foreach ($pasos_det as $paso) {
+				$pasoDet = $xpath->query('/atentus/resultados/detalles/detalle/detalles/detalle[@nodo_id=0]/detalles/detalle[@paso_orden='.$paso->getAttribute('paso_orden').']')->item(0);
+
+				$uptimeDet = 0;
+				$downtimeDet = 0;
+				$downtime_parcialDet = 0;
+				if ($subobjetivo->report_excel == 1) {					
+					$detalle_sheet->getColumnDimension($arrayAlfabeto[($contPasosDet)])->setWidth(23);
+					$detalle_sheet->setCellValue($arrayAlfabeto[($contPasosDet)].($contObjsDetPaso-1), $paso->getAttribute('nombre'));
+					$detalle_sheet->getStyle($arrayAlfabeto[($contPasosDet)].($contObjsDetPaso-1))->applyFromArray($fondo_negro);
+
+					foreach ($xpath->query("estadisticas/estadistica", $pasoDet) as $dato) {
+						if ($dato->getAttribute('evento_id') == '1') {
+							$uptimeDet = $dato->getAttribute('porcentaje');
+						}
+						if ($dato->getAttribute('evento_id') == '2') {
+							$downtimeDet = $dato->getAttribute('porcentaje');
+						}
+						if ($dato->getAttribute('evento_id') == '3') {
+							$downtime_parcialDet = $dato->getAttribute('porcentaje');
+						}
+					}
+
+					$uptime = $uptimeDet + $downtime_parcialDet;
+					$factor_totalDet = $uptime + $downtimeDet;
+					$uptime_realDet = ($uptime * 100) / $factor_totalDet;
+					$detalle_sheet->setCellValue($arrayAlfabeto[($contPasosDet)].$contObjsDetPaso, number_format($uptime_realDet, 2).'%');
+
+					$contPasosDet++;
+				}
+			}
+			if ($subobjetivo->report_excel == 1) {
+				$contObjsDet = $contObjsDet + 4;
+				$contObjsDetPaso = $contObjsDetPaso + 4;
+			}
+			$contObjs++;
+		}
+
+		$objPHPExcel->setActiveSheetIndex(0);
+		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+		$objWriter->save('php://output');
+	}
         
     function getDatosSegregadosIvr() {
         global $mdb2;

@@ -232,13 +232,9 @@ else {
 	
 	/* ES ES SOLO PARA LOS ELEMENTOS
 	 * MUESTRA EL CALENDARIO PERO SOLO PARA UNA LISTA DE DIAS */
-	if ($_SESSION["usa_calendario_limitado"]) {
+	if ($_SESSION["usa_calendario_limitado"] || $_SESSION["usa_calendario_limitado_sc"] ) {
 		$rep_dias = array();
 		for($i=6; $i>=0; $i--){
-			$rep_dias[]= date("Y-m-d", strtotime(date("Y-m-d") . "-".$i." day"));
-		}
-	}else if($_SESSION["usa_calendario_limitado_sc"]){
-		for($i=4; $i>=0; $i--){
 			$rep_dias[]= date("Y-m-d", strtotime(date("Y-m-d") . "-".$i." day"));
 		}
 	}
@@ -254,7 +250,7 @@ else {
 		
 	/* SI SON ELEMENTOS, SOLO SE PUEDE SELECCION POR DIA 
 	 * Y NO POR RANGOS DE FECHAS */
-	if ($_SESSION["usa_calendario_limitado"]) {
+	if ($_SESSION["usa_calendario_limitado"] || $_SESSION["usa_calendario_limitado_sc"]) {
 		$T->setVar('__dia_default', $nombre_clase.".dia_default=1;");
 		$T->setVar('__fecha_sel_disabled', 'disabled');
 		if ($rep_dias == null or count($rep_dias) == 0) {

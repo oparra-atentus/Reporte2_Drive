@@ -351,8 +351,8 @@ function actionSend(){
 				}
 				else{
 
-					text = 'Ha ocurrido un error en el procesamiento de los datos.';
-					type = 'error';
+					text = 'Procesando sus datos, los cambios se reflejaran en unos minutos. ';
+					type = 'success';
 					displayMessageForm(type,text);
 					setTimeout(function() {mostrarSubmenu(section,historySection,1);},3000);		        	
 				}

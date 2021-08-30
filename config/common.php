@@ -1,7 +1,6 @@
 <?
 
 date_default_timezone_set('UTC');
-
 /* LEE ARCHIVO EXTERNO DE CONFIGURACIÓN */
 $app_config = parse_ini_file("application.ini", false);
 define('REP_CDN_HOST', $app_config["cdn_host"]);
@@ -12,9 +11,10 @@ define('REP_CDN_ELEMENTOS', $app_config["cdn_elementos"]);
 define('REP_API_INTERVAL', $app_config["api_interval"]);
 define('REP_API_HOST', $app_config["api_host"]);
 define('REP_API_HOST3', $app_config["api_host3"]);
+define('REP_API_IH', $app_config["api_host_ih"]);
 define('REP_DOMINIO', $app_config["domain"]);
 define('REP_LOCALHOST_DOMINIO', $app_config["domain_localhost"]);
-define('VERSION', "2.86.10");
+define('VERSION', "2.89.30");
 
 /* TRACKIND ID PARA GOOGLE ANALYTICS */
 define('REP_GA_TRACKING_ID', $app_config["google_analytics_tracking_id"]);

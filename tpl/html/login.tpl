@@ -12,7 +12,6 @@
 			}
 		</script>
 	</head>
-
 	<body onload="document.login_form.username.focus();">
 		<form name="login_form" method="post" onSubmit="return true;">
 		<table align="center">
@@ -20,7 +19,7 @@
 				<td class="box" valign="top">
 					<table width="100%">
 						<tr>
-							<td colspan="100%" height="207"></td>
+							<td colspan="100%" height="170"></td>
 						</tr>
 						<tr>
 							<td width="50%"><div style="float: right; background-color: #f47001; padding: 1px;" class="borderradius"><img src="img/header_blanco.png"/></i></div></td>
@@ -28,7 +27,7 @@
 						</tr>
 						<tr>
 							<td width="50%" class="celdablanca100 borderradius" align="center">Sistema de Reportes</td>
-							<td width="50%"></td>
+							<td width="50%" style="padding-right: : 300px;padding-right: 300px;"></td>
 						</tr>
 						<tr>
 							<td colspan="100%" height="15"></td>
@@ -83,35 +82,34 @@
 							</td>
 						</tr>
 						<tr>
-							<td colspan="100%" height="70"></td>
+							<td colspan="100%" height="100"></td>
 						</tr>
 						<tr>
-							<td colspan="100%" align="right">
-								<table>
+							<td colspan="100%" align="left">
+								<table colspan="100%" align="right">
 									<tr>
-										<td>
+										<td style=" padding-right: 20px;" >
 											<a href="https://itunes.apple.com/us/app/appmobile-atentus/id1326836795" target="_blank" >
-												<img alt='Disponible en App Store' src='img/icono_appstore.png'  style="width: 85%; height: 85%;" />
+												<img alt='Disponible en App Store' src='img/icono_appstore.png' />
 											</a>
 										</td>
-										<td >
+										<td style=" padding-right: 300px;">
 											<a href='https://play.google.com/store/apps/details?id=com.atentus.appmobileatentus&hl=es&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1' target="_blank" >
-												<img alt='Disponible en Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/es-419_badge_web_generic.png'  style=" width: 20%; height: 20%;" />
+												<img alt='Disponible en Google Play' src='img/icono_googlePlay.png' />
 											</a>
 										</td>
-										<td><i class="sprite sprite-argentina"></i></td>
-										<td width="5"></td>
+										<td ><i class="sprite sprite-argentina"></i></td>
+										<td width="5" style="padding-right: 5px;"></td>
 										<td><i class="sprite sprite-chile"></i></td>
-										<td width="5"></td>
+										<td width="5" style="padding-right: 5px;"></td>
 										<td><i class="sprite sprite-colombia"></i></td>
-										<td width="5"></td>
+										<td width="5" style="padding-right: 5px;"></td>
 										<td><i class="sprite sprite-mexico"></i></td>
-										<td width="5"></td>
+										<td width="5" style="padding-right: 5px;"></td>
 										<td><i class="sprite sprite-peru"></i></td>
-										<td width="5"></td>
+										<td width="5" style="padding-right: 5px;"></td>
 										<td><i class="sprite sprite-uruguay"></i></td>
-										<td width="5"></td>
-
+										<td width="5" style="padding-right: 10px;"></td>
 									</tr>
 								</table>
 							</td>

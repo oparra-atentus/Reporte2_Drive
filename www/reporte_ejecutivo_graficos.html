@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="HandheldFriendly" content="true">
+		<meta name="keywords" content="css, javascript, html, responsive design, html5">
+		<title>Reporte Ejecutivo Rendimiento</title>
+		<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="/tools/bootstrap/js/bootstrap.js"></script>
+		<script type="text/javascript" src="/tools/fontawesome/js/fontawesome.min.js"></script>
+		<script type="text/javascript" src="/tools/moment/moment.min.js"></script>
+		<script src="/tools/highcharts/highcharts.js"></script>
+		<link rel="stylesheet" type="text/css" href="/toolscss/bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" type="text/css" href="/toolscss/fontawesome/css/all.min.css" />
+	</head>
+	<style>
+		#container {
+			height: 400px;
+		}
+		.highcharts-figure,
+		.highcharts-data-table table {
+			min-width: 310px;
+			max-width: 800px;
+			margin: 1em auto;
+		}
+		.highcharts-data-table table {
+			font-family: Verdana, sans-serif;
+			border-collapse: collapse;
+			border: 1px solid #ebebeb;
+			margin: 10px auto;
+			text-align: center;
+			width: 100%;
+			max-width: 500px;
+		}
+		.highcharts-data-table caption {
+			padding: 1em 0;
+			font-size: 1.2em;
+			color: #555;
+		}
+		.highcharts-data-table th {
+			font-weight: 600;
+			padding: 0.5em;
+		}
+		.highcharts-data-table td,
+		.highcharts-data-table th,
+		.highcharts-data-table caption {
+			padding: 0.5em;
+		}
+		.highcharts-data-table thead tr,
+		.highcharts-data-table tr:nth-child(even) {
+			background: #f8f8f8;
+		}
+		.highcharts-data-table tr:hover {
+			background: #f1f7ff;
+		}
+		.box {
+		  float: right;
+		  vertical-align: middle;
+		  margin: 0px ;
+		  padding: 1px;
+		  min-height: 2px;
+		  max-width: 80%; 
+		  display: flex;
+		}
+		.box2 {
+		  vertical-align: middle;
+		  margin: 0px ;
+		  padding: 1px;
+		  min-height: 2px;
+		}
+	</style>
+	<body id="menuTitulo">
+		<div id="alerta" align="center"></div>
+		<div id="buttonPdf" style="padding: 20px ;"></div>
+		<div id="button2" style="text-align: center;">
+			<img src="img/cargando.gif" />
+			<span class="textgris12">Cargando Reporte. Espere Por Favor.</span>
+		</div>
+		<div id="TituloBody"></div>
+		<div id="rangoGrafi"  class="box"></div>
+		<div class="table-responsive d-xl-flex justify-content-xl-start align-items-xl-center" style="padding: 20px;">
+			<table class="table table-hover" width="100%" id="tabla_dias"></table>
+		</div>
+		<table class="table" id="EstadoBody">
+			<div class="table-responsive"></div>
+			<div id="grafico"></div>
+		</table>
+		<script>
+			function abrirVistaPDF() {
+				url = window.location.href
+				window.open(url.replace("reporte_ejecutivo_graficos","reporte_ejecutivo_graficosPDF"),"formpopup","width=1000,height=1000,scrollbars=NO");
+			}
+			valida= true
+			url = window.location.href;
+			var url = new URL(url);
+			if(url.searchParams.get("data")== null){
+				document.getElementById("button2").style.display = "none";
+				document.getElementById("menuTitulo").style.backgroundColor ='#e4e4e4';
+				document.getElementById("alerta").style.paddingTop ='10%';
+				alerta = '<div><strong class="badge badge-danger">NO HA INGRESADO PARAMETRO data.</strong></div>'
+				$("#alerta").append(alerta)
+			}else if (url.searchParams.get("data")== "") {
+				document.getElementById("button2").style.display = "none";
+				document.getElementById("menuTitulo").style.backgroundColor ='#e4e4e4';
+				document.getElementById("alerta").style.paddingTop ='10%';
+				alerta = '<div><strong class="badge badge-danger">VALOR DE  PARAMETRO data SE ENCUENTRA VACIO</strong></div>'
+				$("#alerta").append(alerta)
+			}else{
+				var parametros = url.searchParams.get("data");
+				var decodedStr = atob(parametros);
+				var res = decodedStr.split("&");
+				var objetivovar64 = "";
+				var userVar64 = "";
+				var tVar64 = "";
+				var tokenVar64 = "";
+				var respoVarii = "&response=true";
+				var wVar="-1";
+				try{
+					for (var i = 0; i < res.length; i++) {
+						if (res[i].indexOf("objetivo=") == 0) {
+							objetivovar64 = res[i].split("=")[1];
+						}
+						if (res[i].indexOf("user=") == 0) {
+							userVar64 = res[i].split("=")[1];
+						}
+						if (res[i].indexOf("t=") == 0) {
+							tVar64 = res[i].split("=")[1];
+						}
+						if (res[i].indexOf("token=") == 0) {
+							tokenVar64 = res[i].split("=")[1];
+						}
+						if (res[i].indexOf('w=') == 0) {
+							wVar = res[i].split("=")[1]
+						}
+					}
+				}catch(e){
+					document.getElementById("button2").style.display = "none";
+					document.getElementById("menuTitulo").style.backgroundColor ='#e4e4e4';
+					document.getElementById("alerta").style.paddingTop ='10%';
+					alerta = '<div><strong class="badge badge-danger">VALOR DE  PARAMETRO data ES ERRONEO</strong></div>'
+					$("#alerta").append(alerta)
+					valida= false
+				}
+				if (valida == true ) {
+					if(objetivovar64 != "" && userVar64 != "" && tVar64 != "" && tokenVar64 != ""){	
+						$.ajax({
+							async: false,
+							type: "POST",
+							url: "utils/reporte_ejecutivo.php",
+							data: { user: userVar64, objetivo: objetivovar64, t: tVar64, token: tokenVar64, respoVari: respoVarii,'w':wVar},
+							success: function (data) {
+								document.getElementById("button2").style.display = "none";
+								try{
+									dataparseSinValidar = JSON.parse(data);
+									console.log(dataparseSinValidar)
+									var fechaTituloSeanaActu = moment(dataparseSinValidar[0].dataTitulos.termino).format("DD/MM/YY");
+									var fechaTituloSemanaAnte = moment(dataparseSinValidar[0].dataTitulos.inicio).format("DD/MM/YY");
+									var tituloCliente = dataparseSinValidar[0].dataTitulos.cliente;
+									var titulo = dataparseSinValidar[0].dataTitulos.titulo;
+									var encabezado = ' <div class="card" id="cardID" style=" text-align: center; border: none; width:100%; " >' +
+									' <div class="card-body">' +
+									'<h3 class="card-title" style="text-align: center; text-black-40; font-size: 3vw;">' + titulo +' del '+ fechaTituloSemanaAnte + ' al ' + fechaTituloSeanaActu + '</h3>' +
+									'<h3 class="text-muted card-subtitle mb-2" style="text-align: center; font-size: 2vw;" >' + tituloCliente + ' Top Transacciones Promedio Más Lentas</h3>' +
+									' </div>' +
+									'</div>'
+									buttonPdf= '<button target="_blank" onclick="abrirVistaPDF()" class="btn btn-success">Vista Impresión</button><img src="img/logoAtentus.png" alt="" style="height: auto;  max-width: 20%;" align="right">'
+									$("#buttonPdf").append(buttonPdf)
+									leyenda ='<div class="d-flex" style=" font-size: 1vw; float: right; text-align: center; vertical-align: middle;" id="dibGrafico">' +
+									'<div class="p-2 text-black-50" style=" font-size: 1vw;"><i class="fas fa-circle" '+
+									'style="color: #df4a58;  text-align: center;"></i> Umbral</div>' +
+									'<div class="p-2 text-black-50" style=" font-size: 1vw;"><i class="fas fa-circle" '+
+									'style="color: #007bff;  text-align: center; font-size: 1vw;"></i> Promedio diario</div>';
+									$("#TituloBody").append(encabezado);
+									$("#rangoGrafi").append(leyenda);
+									var Objective = "";
+									function OrdenEstado(data) {
+										var json = []
+										var estadosOvj = { 0: "text-danger", 1: "text-primary", 2: "text-secondary"}
+										$.each(data, function (i, datOvje) {
+											$.each(estadosOvj, function (j, color) {
+												$.each(datOvje.data_objetivos, function (k, est) {
+													if (est.paso_estado.color_estado == color) {
+														json.push(est)
+													}
+												})
+											})
+										})
+										return json.sort(((a, b) => (b.paso_estado.rendimiento_paso) - (a.paso_estado.rendimiento_paso)))
+									}
+			                        dataparse = OrdenEstado(dataparseSinValidar)
+									$.each(dataparse, function (index, dataObjetivos) {
+										valorObjetivo = dataObjetivos.objetivo;
+										colorrSla = dataObjetivos.paso_estado.color_estado;
+										colorUmbral = dataObjetivos.color_sla;
+										varvalorUmbral = dataObjetivos.sla_rendimiento;
+										rendimientoPaso = dataObjetivos.paso_estado.rendimiento_paso;
+										iconoServicio = dataObjetivos.icono;
+										nombreObjetivo = dataObjetivos.nombre_objetivo;
+										nombrePaso = dataObjetivos.paso_estado.nombre_paso;
+										estadoPaso = dataObjetivos.paso_estado.estado_paso;
+										estadoFecha = dataObjetivos.paso_estado.fecha;
+										colorResponse = dataObjetivos.sla_rendimiento;
+										nombreIspValidacion = dataObjetivos.paso_estado.isp;
+										if (estadoPaso == 'fuera de sla') {
+											estadoPaso = 'Fuera de SLA'
+										}
+										if (typeof nombrePaso == "undefined") {
+											rendimientoPaso = "Sin datos";
+											nombrePaso = "Sin datos";
+											var mediMasLenta =
+												'<td class="text-muted border rounded-0 " style=" font-size: 1vw; opacity: 1;filter: blur(0px);min-height: 10em; display: table-cell;  "><strong class=" text-black-50 " style=" font-size: 1vw; white-space: normal;  "> ' +
+												rendimientoPaso +
+												"</strong></td>";
+											var valorHighcharts = '<strong class=" text-black-50 " style=" white-space: normal;"> ' + rendimientoPaso + "</strong>";
+											var GraficosObjetivo = '<div id="' + valorObjetivo + '" "style="border-color: red ;">' + "</div>";
+										} else {
+											nombreIsp = dataObjetivos.paso_estado.isp.nombre_mobile;
+											var valorHighcharts = '<figure class="highcharts-figure text-black-50  " style=" text-align: center; min-height: 10em; display: table-cell;"><p class="highcharts-description"></p></figure>';
+											var GraficosObjetivo = '<div id="' + valorObjetivo + '" "style="border-color: red ;">' + "</div>";
+											var mediMasLenta =
+												'<td class="text-nowrap border rounded-0" style="padding :25px; margin: 1px; font-size: 15px;opacity: 0.80;  " data-original-title="" title=""><ul><li  class="' +
+												colorrSla +
+												'"style="width: 59px; font-size: 1vw; "><strong>' + rendimientoPaso +' [s]</strong>&nbsp;<br></li><li class="' +colorrSla +
+												'"><strong>Estado: '+estadoPaso+ '</strong><br></li><li class=" text-black-50 " style="white-space: normal;  "><strong class=" text-black-50 " style="white-space: normal; ">Fecha: '+estadoFecha +
+												'</strong></li><li class=" text-black-50 " style="  white-space: normal;  "><strong class=" text-black-50 " style=" font-size: 1vw;  white-space: normal;  ">' +nombreIsp +"</strong></li></ul></td>";
+										}
+										if (colorrSla == "text-danger") {
+											colorPunto =
+												'<td class=" text-nowrap border rounded-0    "style=" font-size: 1vw; text-align: center;  min-height: 10em; display: table-cell;  padding-top: 10px; padding-right: 1px; padding-bottom: 11px; padding-left: 1px;"><i class="fa fa-circle spinner-grow text-danger"></i></td>';
+										} else {
+											colorPunto = '<td class=" text-nowrap border rounded-0    "style=" font-size: 1vw; text-align: center;  min-height: 10em; display: table-cell; vertical-align: middle; padding-top: 10px; padding-right: 1px; padding-bottom: 11px; padding-left: 1px;  " ><i class="fa fa-circle ' + colorrSla + '"></i></td>'
+										}
+										var iconoServicioCcs =
+											'<td class="border rounded-0" style=" font-size: 1vw;text-align: center;  min-height: 10em; display: table-cell; "><i class="fa ' + iconoServicio + '" title="atWeb" style="color: rgb(123,125,128);"></i></td>';
+										Objective +=
+											'<tr ><td class="text-muted border rounded-0" style="font-size: 14px; opacity: 1; '+
+											'filter: blur(0px);min-height: 10em; display: table-cell;  "><strong class=" text-black-50 " '+
+											'style="  white-space: normal; font-size: 1vw;">' + nombreObjetivo +' </strong></td>' +colorPunto +
+											'<td class=" text-black-50  border rounded-0" style=" font-size: 1vw; text-align: center;  min-height: 10em; '+
+											'display: table-cell;"><strong  class="' +colorrSla +'">' +varvalorUmbral +" [s]" + "</strong></td>" + 
+											iconoServicioCcs + '<td class="text-muted border rounded-0 " style=" font-size: 14px;opacity: 1; '+
+											'filter: blur(0px); min-height: 10em; display: table-cell;"><strong class=" text-black-50 " '+
+											'style="  white-space: normal; font-size: 1vw;">' + nombrePaso +"</strong></td>" +mediMasLenta +'<td '+
+											'class="text-black-50  border rounded-0 font-size: 1vw;">'+valorHighcharts + GraficosObjetivo + '</td></tr>'
+										Objective += "</tr>";
+									});
+									sectDias = "";
+
+									nombreColumna =
+										"<tr> " +
+										'<td class="text-black-50 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;">Nombre Servicio / Aplicación</td>' +
+										'<td class="text-black-50 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;"> SLA</td>' +
+										'<td class="text-black-50 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;">Umbral</td>' +
+										'<td class="text-black-50 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;">Tipo</td>' +
+										'<td class="text-black-50 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;">Paso</td>' +
+										'<td class="text-black-50 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;">Medición mas lenta</td>' +
+										'<td class="text-black-50 border rounded-0" style=" text-align: center; min-height: 10em; display: table-cell; vertical-align: middle; font-size: 1vw;"colspan="2" >Evolución Semanal</td></tr>' + Objective;
+									$("#tabla_dias").append(nombreColumna);
+									$.each(dataparse, function (j, dataObjetivos) {
+										if (typeof dataObjetivos.paso_estado.nombre_paso != "undefined") {
+											valorObjetivo = dataObjetivos.objetivo;
+											varvalorUmbral = dataObjetivos.sla_rendimiento;
+											maxRendimiento = 0;
+											$.each(dataObjetivos.data_semana, function (k, dataDia) {
+												if (dataDia.rendimiento_dia > maxRendimiento) {
+													maxRendimiento = dataDia.rendimiento_dia;
+												}
+											});
+											if (maxRendimiento < varvalorUmbral) {
+												maxRendimiento = varvalorUmbral;
+											}
+											crearGrafico(valorObjetivo, dataObjetivos.data_semana, varvalorUmbral, maxRendimiento);
+										}
+									})
+									function crearDatosGrafico(dataObjetivos) {
+										var datosGraficos = [];
+										$.each(dataObjetivos, function (ind, disp) {
+											valorDispoColum = disp.rendimiento_dia;
+											fechaDispoColum = moment(disp.fecha).format("DD/MM");
+											colorDispoColum = disp.color;
+											color = disp.estado_dia;
+											var chartJson = {
+												name: fechaDispoColum,
+												y: parseFloat(valorDispoColum),
+												color: color,
+											};
+											datosGraficos.push(chartJson);
+										});
+										return datosGraficos;
+									}
+									function crearGrafico(objetivo, dataObjetivos, umbralRendimineto, maxRendimiento) {
+			                            Highcharts.chart(objetivo, {
+			                                chart: {
+			                                   
+			                                    type: "column",
+			                                      width: 450,
+			                                      height: 350
+			                                },
+			                                credits: {
+			                                    enabled: false,
+			                                },
+			                                exporting: {
+			                                    enabled: false,
+			                                },
+			                                title: {
+			                                    text: "",
+			                                },
+			                                subtitle: {
+			                                    text: "",
+			                                },
+			                                accessibility: {
+			                                    announceNewData: {
+			                                        enabled: true,
+			                                    },
+			                                },
+			                                xAxis: {
+			                                    type: "category",
+			                                },
+			                                yAxis: {
+			                                    title: {
+			                                        text: "",
+			                                    },
+			                                },
+			                                legend: {
+			                                    enabled: false,
+			                                },
+			                                plotOptions: {
+			                                    series: {
+			                                        borderWidth: 0,
+			                                        dataLabels: {
+			                                            enabled: true,
+			                                            format: "{point.y:.1f}%",
+			                                        },
+			                                    },
+			                                },
+			                                tooltip: {
+			                                    pointFormat: "SLA <b>{point.y:.1f} segundos</b>",
+			                                },
+
+			                                series: [
+			                                    {
+			                                        data: crearDatosGrafico(dataObjetivos),
+			                                        dataLabels: {
+			                                            enabled: true,
+
+			                                            backgroundColor: "white",
+			                                            align: "right",
+			                                            format: "{point.y:.1f}",
+			                                            x: 1,
+			                                            style: {
+			                                                opacity: 2,
+			                                                margin: "10px",
+			                                                fontSize: "13px",
+			                                                fontFamily: "Verdana, sans-serif",
+			                                            },
+			                                        },
+			                                    },
+			                                ],
+			                            });
+			                        }
+			                    }catch(e){
+			                    	document.getElementById("button2").style.display = "none";
+									document.getElementById("menuTitulo").style.backgroundColor = "#e4e4e4";
+									document.getElementById("alerta").style.paddingTop = "10%";
+									alerta = '<div><strong class="badge badge-danger">VALOR ERRONEO DE PARAMETRO DENTRO DE data </strong></div>'
+									$("#alerta").append(alerta)
+			                    }    
+							},
+							error: function () {
+								document.getElementById("button2").style.display = "none";
+								document.getElementById("menuTitulo").style.backgroundColor = "#e4e4e4";
+								alerta = '<div><strong class="badge badge-danger">No se ha podido obtener la información </strong></div>'
+								$("#alerta").append(alerta)
+							},
+						});
+					}else{
+						document.getElementById("button2").style.display = "none";
+						document.getElementById("menuTitulo").style.backgroundColor ='#e4e4e4';
+						document.getElementById("alerta").style.paddingTop ='10%';
+						alerta = '<div><strong class="badge badge-danger">VALOR FALTANTE DE PARAMETRO DENTRO DE data</strong></div>'
+						$("#alerta").append(alerta)
+					}
+				}	
+			}	
+		</script>
+	</body>
+</html>
