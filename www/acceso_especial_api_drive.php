@@ -94,7 +94,7 @@ if (isset($_REQUEST['horario_id'])) {
 /* SI EL REPORTE ESPECIAL MUESTRA UN PDF */
 if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
 
-    $html = REP_DOMINIO . "acceso_especial.php?acceso_pdftohtml=1&es_pdf=true";
+    $html = REP_DOMINIO . "acceso_especial_api_drive.php?acceso_pdftohtml=1&es_pdf=true";
     foreach ($_REQUEST as $nombre => $valor) {
         $html.="&" . $nombre . "=" . urlencode($valor);
     }
@@ -102,6 +102,26 @@ if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
     /* NOMBRE PDF : OBJETIVO */
     $dwn_objetivo = $objetivo->nombre . "_";
     $dwn_periodo = $timestamp->toString();
+    /*Determina el periodo de un reporte especial
+    Creado por:Oscar Parra Flores*/
+    $periodo="";
+    $periodo_inicio= new DateTime($_REQUEST['fecha_inicio']);
+    $periodo_termino= new DateTime($_REQUEST['fecha_termino']);
+    $dif = $periodo_inicio->diff($periodo_termino);
+    if($dif->days==28 || $dif->days==29 || $dif->days==30 || $dif->days==31){
+        $periodo="mensual";
+    }
+    if($dif->days==7 ){
+        $periodo="semanal";
+    }
+    if($dif->days==1){
+        $periodo="diario";
+    }
+    /*Obtiene la lista de destinatarios por reporte
+    Creado por:Oscar Parra Flores*/
+    $direccion_email=$objetivo->__direccion;
+    $contador_direccion=0;
+    $largo_email=count($objetivo->__direccion);
 
     /* NOMBRE PDF : REPORTE */
     $sactual = Seccion::getSeccionPorDefecto(34);
@@ -113,9 +133,16 @@ if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
         }
     }
 
+    
     /* NOMBRE COMPLETO PDF */
     $dwn_completo = $dwn_reporte . $dwn_objetivo . $dwn_periodo . ".pdf";
     $dwn_completo = str_replace(array(" - ", " ", "/", ","), array("_", "-", "-", "-"), $dwn_completo);
+    $buscado="(bco-bogota)";
+    $inicial_reporte="Reportes-Especiales";
+    $busqueda=strpos($dwn_completo,$buscado);
+    if ($busqueda==true){
+        $dwn_completo=$inicial_reporte."-".$dwn_completo; 
+    }
     
     exec(REP_PATH_HTMLTOPDF . " --dpi 180 -T 30mm -B 18mm -L 2mm -R 2mm " .
             "--header-spacing 10 --header-html " . REP_PATH_TEMPLATES . "header_pdf.html --javascript-delay 2500 " .
@@ -126,10 +153,27 @@ if ($type->content == 'pdf' && !isset($_REQUEST["acceso_pdftohtml"])) {
     header("Cache-Control:  maxage=1");
     header("Pragma: public");
     header("Content-type: application/pdf");
-    header("Content-Disposition: attachment; filename=" . $dwn_completo);
+    header("Content-Disposition: attachment; filename=" .$dwn_completo);
     $file = fopen($pdf, "r");
     fpassthru($file);
     unlink($pdf);
+    /*Envia datos de nombre de reporte y destinatarios a archivo  de texto que indica si posteriormente el reporte se guarda dentro de la lista de reportes diario,semanal o mensual
+    Creado por:Oscar Parra Flores
+    */
+    $lenguage = 'es_CL.UTF-8';
+    putenv("LANG=$lenguage");
+    setlocale(LC_ALL, $lenguage);
+    $drive = new Clase_drive();
+     if ($periodo!='diario' && $periodo!='mensual'){
+        $drive->organizarReportes('indicadores/objetivos_semanal',$direccion_email,$dwn_completo,$largo_email,$contador_direccion);  
+    }
+    if ($periodo=='mensual'){
+        $drive->organizarReportes('indicadores/objetivos_mensual',$direccion_email,$dwn_completo,$largo_email,$contador_direccion); 
+    } 
+    
+    if ($periodo=='diario'){
+        $drive->organizarReportes('indicadores/objetivos_diario',$direccion_email,$dwn_completo,$largo_email,$contador_direccion);
+    }
 }
 
 /* SI EL REPORTE ESPECIAL MUESTRA UN INFORME Y ES ENVIADO POR MAIL*/ 
